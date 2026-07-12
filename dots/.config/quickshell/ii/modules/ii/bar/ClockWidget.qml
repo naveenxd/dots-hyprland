@@ -3,13 +3,27 @@ import qs.modules.common.widgets
 import qs.services
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 Item {
     id: root
     property bool borderless: Config.options.bar.borderless
     property bool showDate: Config.options.bar.verbose
+    property string timeFormatWithSeconds: {
+        let format = Config.options?.time.format ?? "hh:mm";
+        if (format.includes("ap") || format.includes("AP"))
+            return format.replace(/(?=\s+[aA][pP]$)/, ":ss");
+        if (!format.includes("ss"))
+            return `${format}:ss`;
+        return format;
+    }
     implicitWidth: rowLayout.implicitWidth
     implicitHeight: Appearance.sizes.barHeight
+
+    SystemClock {
+        id: barClock
+        precision: SystemClock.Seconds
+    }
 
     RowLayout {
         id: rowLayout
@@ -19,7 +33,7 @@ Item {
         StyledText {
             font.pixelSize: Appearance.font.pixelSize.large
             color: Appearance.colors.colOnLayer1
-            text: DateTime.time
+            text: Qt.locale().toString(barClock.date, root.timeFormatWithSeconds)
         }
 
         StyledText {
