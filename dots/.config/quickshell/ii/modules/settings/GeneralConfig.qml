@@ -301,7 +301,6 @@ ContentPage {
                 text: Translation.tr("Enable if you want clocks to show seconds accurately")
             }
         }
-
         ContentSubsection {
             title: Translation.tr("Format")
             tooltip: ""
@@ -333,6 +332,7 @@ ContentPage {
                 ]
             }
         }
+
     }
 
     ContentSection {
