@@ -141,11 +141,11 @@ Item { // Bar content region
             }
 
             HorizontalBarSeparator {
-                visible: Battery.available
+                visible: Battery.available && Config.options.bar.indicators.showBattery
             }
 
             BatteryIndicator {
-                visible: Battery.available
+                visible: Battery.available && Config.options.bar.indicators.showBattery
                 Layout.fillWidth: true
                 Layout.fillHeight: false
             }
