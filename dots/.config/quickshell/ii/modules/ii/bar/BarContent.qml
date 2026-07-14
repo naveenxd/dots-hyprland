@@ -146,7 +146,7 @@ Item { // Bar content region
         RowLayout {
             id: rightSectionRowLayout
             anchors.fill: parent
-            spacing: 0
+            spacing: 12
             layoutDirection: Qt.RightToLeft
 
             RippleButton { // Right sidebar button
@@ -160,7 +160,7 @@ Item { // Bar content region
                 implicitHeight: Appearance.sizes.baseBarHeight - 8
 
                 buttonRadius: Appearance.rounding.small
-                colBackground: Appearance.colors.colLayer1
+                colBackground: Config.options?.bar.borderless ? "transparent" : Appearance.colors.colLayer1
                 colBackgroundHover: Appearance.colors.colLayer1Hover
                 colRipple: Appearance.colors.colLayer1Active
                 colBackgroundToggled: Appearance.colors.colSecondaryContainer
@@ -190,8 +190,8 @@ Item { // Bar content region
                         Layout.fillHeight: true
                         Layout.preferredWidth: visible ? implicitWidth : 0
                         invertSide: Config?.options.bar.bottom
-                        showSeparator: false
-                        Layout.rightMargin: 4
+                        showSeparator: true
+                        Layout.rightMargin: 12
                     }
 
                     Revealer {
@@ -271,12 +271,6 @@ Item { // Bar content region
                 }
             }
 
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                visible: utilButtonsGroup.visible
-            }
-
             // Utils
             BarGroup {
                 id: utilButtonsGroup
@@ -289,8 +283,6 @@ Item { // Bar content region
                     Layout.alignment: Qt.AlignVCenter
                 }
             }
-
-            Item { Layout.fillWidth: true; Layout.fillHeight: true }
 
             // DateTime + Weather
             MouseArea {
