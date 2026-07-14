@@ -83,8 +83,8 @@ Item {
             anchors.fill: parent
             anchors.leftMargin: 0
             anchors.rightMargin: 0
-            anchors.topMargin: 1
-            anchors.bottomMargin: 1
+            anchors.topMargin: 0
+            anchors.bottomMargin: 0
 
             layer.enabled: true
             layer.effect: OpacityMask {
@@ -97,7 +97,11 @@ Item {
 
             WaveVisualizer {
                 id: visualizerBg
-                anchors.fill: parent
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: -12
                 layer.enabled: false
                 visible: opacity > 0
                 opacity: (root.isPlaying && !GlobalStates.mediaControlsOpen && root.visualizerPoints.length > 0) ? 1 : 0
