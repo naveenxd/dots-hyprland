@@ -200,8 +200,8 @@ Singleton {
         title = title.replace(/ *「[^」]*」/g, " ");
         title = title.replace(/ *『[^』]*』/g, " ");
 
-        // Remove hyphenated metadata (e.g. " - From...", " - Official...", " - Remastered...", " - Lyrical...")
-        title = title.replace(/\s*[-–—]\s*(From|Official|Remastered|Live|Lyrical|Audio|Video)[\s"'.:(\[].*$/i, "");
+        // Remove hyphenated metadata (e.g. " - From...", " - Official...", " - Remastered...", " - Live", etc.)
+        title = title.replace(/\s*[-–—]\s*(From|Official|Remastered|Live|Lyrical|Audio|Video)(?:[\s"'.:(\[].*)?$/i, "");
 
         return title.replace(/\s+/g, " ").trim();
     }

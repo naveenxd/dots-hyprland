@@ -17,3 +17,6 @@ __pycache__/
 *~
 dots/.config/fish/fish_variables
 dots/.config/kdeglobals
+
+#custom dir
+dots/.config/hypr/custom/

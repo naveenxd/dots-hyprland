@@ -21,6 +21,13 @@ Singleton {
     property string nextLyricLine: ""
     property bool isMultiLineJoined: false
     property var lyricLines: [] // Array of { time: seconds, text: string }
+    property var groupedLyricLines: []
+
+    onLyricLinesChanged: rebuildGroups()
+    Connections {
+        target: GlobalStates
+        function onTopBarMediaWidthChanged() { rebuildGroups() }
+    }
     property string plainLyrics: ""
 
     property real lastKnownPosition: 0
@@ -28,7 +35,7 @@ Singleton {
 
     function normalizeStr(s) {
         if (!s) return "";
-        return String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+        return String(s).toLowerCase().normalize("NFC").replace(/[^\p{L}\p{N}]/gu, "");
     }
 
     function findBestResult(results, targetTrack, targetArtist, targetDuration) {
@@ -107,6 +114,11 @@ Singleton {
         if (targetDuration > 0) {
             let getUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTrack)}&artist_name=${encodeURIComponent(cleanArtist)}&duration=${targetDuration}`;
             var getXhr = new XMLHttpRequest();
+            getXhr.timeout = 10000; // 10 seconds timeout
+            getXhr.ontimeout = function() {
+                if (myFetchId !== root.currentFetchId) return;
+                root.searchLyricsFallback(myFetchId, cleanTrack, cleanArtist, targetDuration, cacheKey);
+            };
             getXhr.onreadystatechange = function() {
                 if (getXhr.readyState === XMLHttpRequest.DONE) {
                     if (myFetchId !== root.currentFetchId) return;
@@ -135,6 +147,11 @@ Singleton {
         let query = `${cleanTrack} ${cleanArtist}`.trim();
         let url = `https://lrclib.net/api/search?q=${encodeURIComponent(query)}`;
         var xhr = new XMLHttpRequest();
+        xhr.timeout = 10000; // 10 seconds timeout
+        xhr.ontimeout = function() {
+            if (fetchId !== root.currentFetchId) return;
+            root.loading = false;
+        };
         xhr.onreadystatechange = function() {
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 if (fetchId !== root.currentFetchId) return;
@@ -162,12 +179,17 @@ Singleton {
         if (synced && synced.length > 0) {
             let lines = synced.split("\n");
             let parsed = [];
-            let regex = /\[(\d+:\d+(?:\.\d+)?)\](.*)/;
+            let regex = /\[((?:\d+:)?\d+:\d+(?:\.\d+)?)\](.*)/;
             for (let i = 0; i < lines.length; i++) {
                 let match = regex.exec(lines[i]);
                 if (match) {
                     let timeParts = match[1].split(":");
-                    let timeSec = (parseFloat(timeParts[0]) || 0) * 60.0 + (parseFloat(timeParts[1]) || 0);
+                    let timeSec = 0;
+                    if (timeParts.length === 3) {
+                        timeSec = (parseFloat(timeParts[0]) || 0) * 3600.0 + (parseFloat(timeParts[1]) || 0) * 60.0 + (parseFloat(timeParts[2]) || 0);
+                    } else {
+                        timeSec = (parseFloat(timeParts[0]) || 0) * 60.0 + (parseFloat(timeParts[1]) || 0);
+                    }
                     let text = match[2].trim();
                     if (text.length > 0) {
                         parsed.push({ time: timeSec, text: text });
@@ -235,11 +257,14 @@ Singleton {
         return lyricMetrics.advanceWidth;
     }
 
-    function findGroupForIndex(lines, targetIdx) {
-        if (!lines || targetIdx < 0 || targetIdx >= lines.length) {
-            return { startIdx: -1, endIdx: -1, text: "", nextStartIdx: -1 };
+    function rebuildGroups() {
+        let lines = root.lyricLines;
+        if (!lines || lines.length === 0) {
+            root.groupedLyricLines = [];
+            return;
         }
         let maxAllowedPx = Math.max(140, (GlobalStates?.topBarMediaWidth ?? 440) - 150);
+        let groups = [];
         let i = 0;
         while (i < lines.length) {
             let start = i;
@@ -264,12 +289,20 @@ Singleton {
                 }
             }
 
-            if (targetIdx >= start && targetIdx < j) {
-                return { startIdx: start, endIdx: j - 1, text: groupText, nextStartIdx: j };
+            let group = { startIdx: start, endIdx: j - 1, text: groupText, nextStartIdx: j };
+            for (let k = start; k < j; k++) {
+                groups[k] = group;
             }
             i = j;
         }
-        return { startIdx: targetIdx, endIdx: targetIdx, text: lines[targetIdx].text, nextStartIdx: targetIdx + 1 };
+        root.groupedLyricLines = groups;
+    }
+
+    function findGroupForIndex(lines, targetIdx) {
+        if (!root.groupedLyricLines || targetIdx < 0 || targetIdx >= root.groupedLyricLines.length) {
+            return { startIdx: -1, endIdx: -1, text: "", nextStartIdx: -1 };
+        }
+        return root.groupedLyricLines[targetIdx];
     }
 
     Timer {

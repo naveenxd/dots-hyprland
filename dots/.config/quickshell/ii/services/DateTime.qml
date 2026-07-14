@@ -13,14 +13,14 @@ Singleton {
     property var clock: SystemClock {
         id: clock
         precision: {
-            if (Config.options.time.secondPrecision || GlobalStates.screenLocked)
+            if (Config.options?.time?.secondPrecision || GlobalStates.screenLocked)
                 return SystemClock.Seconds;
             return SystemClock.Minutes;
         }
     }
     property string time: {
-        const fmt = Config.options?.time.format ?? "hh:mm";
-        if (Config.options.time.secondPrecision) {
+        const fmt = Config.options?.time?.format ?? "hh:mm";
+        if (Config.options?.time?.secondPrecision) {
             // Insert :ss before trailing am/pm suffix (e.g. " ap", " AP") or append it
             const withSeconds = fmt.replace(/( [aA][pP]?)$/, ":ss$1");
             // If no suffix was replaced, append :ss
@@ -29,9 +29,9 @@ Singleton {
         }
         return Qt.locale().toString(clock.date, fmt);
     }
-    property string shortDate: Qt.locale().toString(clock.date, Config.options?.time.shortDateFormat ?? "dd/MM")
-    property string date: Qt.locale().toString(clock.date, Config.options?.time.dateWithYearFormat ?? "dd/MM/yyyy")
-    property string longDate: Qt.locale().toString(clock.date, Config.options?.time.dateFormat ?? "dddd, dd/MM")
+    property string shortDate: Qt.locale().toString(clock.date, Config.options?.time?.shortDateFormat ?? "dd/MM")
+    property string date: Qt.locale().toString(clock.date, Config.options?.time?.dateWithYearFormat ?? "dd/MM/yyyy")
+    property string longDate: Qt.locale().toString(clock.date, Config.options?.time?.dateFormat ?? "dddd, dd/MM")
     property string collapsedCalendarFormat: Qt.locale().toString(clock.date, "dddd, MMMM dd")
     property string uptime: "0h, 0m"
 

@@ -251,7 +251,7 @@ Item { // Bar content region
                         color: rightSidebarButton.colText
                     }
                     BatteryIndicator {
-                        visible: Battery.available && Config.options.bar.indicators.showBattery
+                        visible: Battery.available && Config.options?.bar?.indicators?.showBattery
                         Layout.alignment: Qt.AlignVCenter
                         Layout.leftMargin: 8
                     }
@@ -306,7 +306,7 @@ Item { // Bar content region
                         id: clockRow
                         anchors.centerIn: parent
                         spacing: 0
-                        
+
                         ClockWidget {
                             showDate: (Config.options.bar.verbose && root.useShortenedForm < 2)
                             Layout.alignment: Qt.AlignVCenter

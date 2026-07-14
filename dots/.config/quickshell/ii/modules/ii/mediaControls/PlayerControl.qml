@@ -100,7 +100,7 @@ Item { // Player instance
         }
 
         // Binding does not work in Process
-        coverArtDownloader.targetFile = root.artUrl 
+        coverArtDownloader.targetFile = root.artUrl
         coverArtDownloader.artFilePath = root.artFilePath
         // Download
         root.downloaded = false
@@ -404,7 +404,7 @@ Item { // Player instance
                         maximumLineCount: 1
                         visible: true
                         text: {
-                            if (!LyricsService.isSpotifyPlayer(root.player)) return "";
+                            if (!LyricsService.isSupportedPlayer(root.player)) return "";
                             if (LyricsService.lyricLines.length > 0) return LyricsService.nextLyricLine;
                             if (LyricsService.loading) return "Fetching lyrics…";
                             return "No lyrics available";
@@ -444,7 +444,7 @@ Item { // Player instance
                                 id: sliderLoader
                                 anchors.fill: parent
                                 active: root.player?.canSeek ?? false
-                                sourceComponent: StyledSlider { 
+                                sourceComponent: StyledSlider {
                                     configuration: StyledSlider.Configuration.Wavy
                                     highlightColor: blendedColors.colPrimary
                                     trackColor: blendedColors.colSecondaryContainer
@@ -468,7 +468,7 @@ Item { // Player instance
                                     right: parent.right
                                 }
                                 active: !(root.player?.canSeek ?? false)
-                                sourceComponent: StyledProgressBar { 
+                                sourceComponent: StyledProgressBar {
                                     wavy: root.player?.isPlaying
                                     highlightColor: blendedColors.colPrimary
                                     trackColor: blendedColors.colSecondaryContainer
@@ -476,7 +476,7 @@ Item { // Player instance
                                 }
                             }
 
-                            
+
                         }
                         TrackChangeButton {
                             iconName: "skip_next"
