@@ -8,8 +8,9 @@ Canvas { // Visualizer
     id: root
     property list<var> points
     property list<var> smoothPoints
-    property real maxVisualizerValue: 1000
-    property int smoothing: 2
+    property real maxVisualizerValue: 850
+    property int smoothing: 1
+    property real nonLinearCurve: 0.72
     property bool live: true
     property color color: Appearance.m3colors.m3primary
 
@@ -17,7 +18,6 @@ Canvas { // Visualizer
         root.requestPaint()
     }
 
-    anchors.fill: parent
     onPaint: {
         var ctx = getContext("2d");
         ctx.clearRect(0, 0, width, height);
@@ -47,7 +47,9 @@ Canvas { // Visualizer
         ctx.moveTo(0, h);
         for (var i = 0; i < n; ++i) {
             var x = i * w / (n - 1);
-            var y = h - (root.smoothPoints[i] / maxVal) * h;
+            var norm = Math.min(1.0, Math.max(0.0, root.smoothPoints[i] / maxVal));
+            var scaled = Math.pow(norm, root.nonLinearCurve);
+            var y = h - scaled * h;
             ctx.lineTo(x, y);
         }
         ctx.lineTo(w, h);

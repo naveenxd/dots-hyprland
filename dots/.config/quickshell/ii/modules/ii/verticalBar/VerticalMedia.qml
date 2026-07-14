@@ -14,6 +14,8 @@ MouseArea {
     id: root
     property bool borderless: Config.options.bar.borderless
     readonly property MprisPlayer activePlayer: MprisController.activePlayer
+    readonly property bool isPlaying: activePlayer?.playbackState === MprisPlaybackState.Playing
+    readonly property bool hasMedia: activePlayer != null && (root.isPlaying || (StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || "") !== "")
     readonly property string cleanedTitle: StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || Translation.tr("No media")
 
     Layout.fillHeight: true
@@ -31,13 +33,14 @@ MouseArea {
     hoverEnabled: !Config.options.bar.tooltips.clickToShow
     onPressed: (event) => {
         if (event.button === Qt.MiddleButton) {
-            activePlayer.togglePlaying();
+            if (root.hasMedia && activePlayer) activePlayer.togglePlaying();
         } else if (event.button === Qt.BackButton) {
-            activePlayer.previous();
+            if (root.hasMedia && activePlayer) activePlayer.previous();
         } else if (event.button === Qt.ForwardButton || event.button === Qt.RightButton) {
-            activePlayer.next();
+            if (root.hasMedia && activePlayer) activePlayer.next();
         } else if (event.button === Qt.LeftButton) {
-            GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen
+            if (root.hasMedia) GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen;
+            else GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
         }
     }
 
@@ -59,7 +62,7 @@ MouseArea {
             MaterialSymbol {
                 anchors.centerIn: parent
                 fill: 1
-                text: activePlayer?.isPlaying ? "pause" : "music_note"
+                text: activePlayer?.isPlaying ? "pause" : (root.hasMedia ? "play_arrow" : "auto_awesome")
                 iconSize: Appearance.font.pixelSize.normal
                 color: Appearance.m3colors.m3onSecondaryContainer
             }
@@ -75,13 +78,13 @@ MouseArea {
             spacing: 4
 
             Bar.StyledPopupHeaderRow {
-                icon: "music_note"
-                label: Translation.tr("Media")
+                icon: root.hasMedia ? "music_note" : "auto_awesome"
+                label: root.hasMedia ? Translation.tr("Media") : Translation.tr("Quote")
             }
 
             StyledText {
                 color: Appearance.colors.colOnSurfaceVariant
-                text: `${cleanedTitle}${activePlayer?.trackArtist ? '\n' + activePlayer.trackArtist : ''}`
+                text: root.hasMedia ? `${cleanedTitle}${activePlayer?.trackArtist ? '\n' + activePlayer.trackArtist : ''}` : "Everything happens for a reason"
             }
         }
     }

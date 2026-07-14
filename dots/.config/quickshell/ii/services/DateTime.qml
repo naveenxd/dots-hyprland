@@ -18,7 +18,17 @@ Singleton {
             return SystemClock.Minutes;
         }
     }
-    property string time: Qt.locale().toString(clock.date, Config.options?.time.format ?? "hh:mm")
+    property string time: {
+        const fmt = Config.options?.time.format ?? "hh:mm";
+        if (Config.options.time.secondPrecision) {
+            // Insert :ss before trailing am/pm suffix (e.g. " ap", " AP") or append it
+            const withSeconds = fmt.replace(/( [aA][pP]?)$/, ":ss$1");
+            // If no suffix was replaced, append :ss
+            const finalFmt = withSeconds === fmt ? fmt + ":ss" : withSeconds;
+            return Qt.locale().toString(clock.date, finalFmt);
+        }
+        return Qt.locale().toString(clock.date, fmt);
+    }
     property string shortDate: Qt.locale().toString(clock.date, Config.options?.time.shortDateFormat ?? "dd/MM")
     property string date: Qt.locale().toString(clock.date, Config.options?.time.dateWithYearFormat ?? "dd/MM/yyyy")
     property string longDate: Qt.locale().toString(clock.date, Config.options?.time.dateFormat ?? "dddd, dd/MM")

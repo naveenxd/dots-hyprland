@@ -292,7 +292,7 @@ ContentPage {
 
         ConfigSwitch {
             buttonIcon: "pace"
-            text: Translation.tr("Second precision")
+            text: Translation.tr("Seconds")
             checked: Config.options.time.secondPrecision
             onCheckedChanged: {
                 Config.options.time.secondPrecision = checked;

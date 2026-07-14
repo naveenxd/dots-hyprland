@@ -18,7 +18,7 @@ Singleton {
 	id: root;
 	property list<MprisPlayer> players: Mpris.players.values.filter(player => isRealPlayer(player));
 	property MprisPlayer trackedPlayer: null;
-	property MprisPlayer activePlayer: trackedPlayer ?? Mpris.players.values[0] ?? null;
+	property MprisPlayer activePlayer: trackedPlayer ?? root.players[0] ?? null;
 	signal trackChanged(reverse: bool);
 
 	property bool __reverse: false;
@@ -43,7 +43,7 @@ Singleton {
 
 	// Original stuff from fox below
 	Instantiator {
-		model: Mpris.players;
+		model: root.players;
 
 		Connections {
 			required property MprisPlayer modelData;
@@ -57,21 +57,30 @@ Singleton {
 
 			Component.onDestruction: {
 				if (root.trackedPlayer == null || !root.trackedPlayer.isPlaying) {
-					for (const player of Mpris.players.values) {
+					for (const player of root.players) {
 						if (player.playbackState.isPlaying) {
 							root.trackedPlayer = player;
 							break;
 						}
 					}
 
-					if (trackedPlayer == null && Mpris.players.values.length != 0) {
-						trackedPlayer = Mpris.players.values[0];
+					if (trackedPlayer == null && root.players.length != 0) {
+						trackedPlayer = root.players[0];
 					}
 				}
 			}
 
 			function onPlaybackStateChanged() {
-				if (root.trackedPlayer !== modelData) root.trackedPlayer = modelData;
+				if (modelData.isPlaying) {
+					root.trackedPlayer = modelData;
+				} else if (root.trackedPlayer === modelData) {
+					for (const player of root.players) {
+						if (player.isPlaying) {
+							root.trackedPlayer = player;
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
