@@ -84,7 +84,7 @@ MouseArea {
 
             StyledText {
                 color: Appearance.colors.colOnSurfaceVariant
-                text: root.hasMedia ? `${cleanedTitle}${activePlayer?.trackArtist ? '\n' + activePlayer.trackArtist : ''}` : "Everything happens for a reason"
+                text: root.hasMedia ? `${cleanedTitle}${activePlayer?.trackArtist ? '\n' + activePlayer.trackArtist : ''}` : GlobalStates.randomQuote
             }
         }
     }

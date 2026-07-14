@@ -11,6 +11,24 @@ Singleton {
     id: root
     property bool barOpen: true
     property real topBarMediaWidth: 440
+    property string randomQuote: "Everything happens for a reason"
+    readonly property var quotesList: [
+        "Everything happens for a reason",
+        "Believe you can and you're halfway there",
+        "Collect moments, not things",
+        "Keep moving forward",
+        "Make today count",
+        "Simplicity is the ultimate sophistication",
+        "Dream big. Start small. Act now.",
+        "Be here now",
+        "Stay hungry, stay foolish",
+        "Yesterday you said tomorrow"
+    ]
+
+    Component.onCompleted: {
+        root.randomQuote = root.quotesList[Math.floor(Math.random() * root.quotesList.length)];
+    }
+
     property bool crosshairOpen: false
     property bool sidebarLeftOpen: false
     property bool sidebarRightOpen: false

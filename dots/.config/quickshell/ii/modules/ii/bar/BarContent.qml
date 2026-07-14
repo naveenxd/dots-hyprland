@@ -52,12 +52,12 @@ Item { // Bar content region
         id: barLeftSideMouseArea
 
         anchors {
-            top: parent.top
-            bottom: parent.bottom
+            verticalCenter: parent.verticalCenter
             left: parent.left
             right: middleSection.left
             rightMargin: 6
         }
+        height: Appearance.sizes.baseBarHeight
         implicitHeight: Appearance.sizes.baseBarHeight
 
         onScrollDown: Audio.decrementVolume()
@@ -262,6 +262,36 @@ Item { // Bar content region
 
             Item { Layout.fillWidth: true; Layout.fillHeight: true }
 
+            // Stats (Resources)
+            BarGroup {
+                Layout.alignment: Qt.AlignVCenter
+
+                Resources {
+                    alwaysShowAllResources: true
+                }
+            }
+
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                visible: utilButtonsGroup.visible
+            }
+
+            // Utils
+            BarGroup {
+                id: utilButtonsGroup
+                Layout.alignment: Qt.AlignVCenter
+                visible: Config.options.bar.verbose && root.useShortenedForm === 0 && utilButtonsItem.implicitWidth > 8
+                Layout.preferredWidth: visible ? implicitWidth : 0
+
+                UtilButtons {
+                    id: utilButtonsItem
+                    Layout.alignment: Qt.AlignVCenter
+                }
+            }
+
+            Item { Layout.fillWidth: true; Layout.fillHeight: true }
+
             // DateTime + Weather
             MouseArea {
                 Layout.alignment: Qt.AlignVCenter
@@ -305,36 +335,6 @@ Item { // Bar content region
                             sourceComponent: WeatherBar {}
                         }
                     }
-                }
-            }
-
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                visible: utilButtonsGroup.visible
-            }
-
-            // Utils
-            BarGroup {
-                id: utilButtonsGroup
-                Layout.alignment: Qt.AlignVCenter
-                visible: Config.options.bar.verbose && root.useShortenedForm === 0 && utilButtonsItem.implicitWidth > 8
-                Layout.preferredWidth: visible ? implicitWidth : 0
-
-                UtilButtons {
-                    id: utilButtonsItem
-                    Layout.alignment: Qt.AlignVCenter
-                }
-            }
-
-            Item { Layout.fillWidth: true; Layout.fillHeight: true }
-
-            // Stats (Resources)
-            BarGroup {
-                Layout.alignment: Qt.AlignVCenter
-
-                Resources {
-                    alwaysShowAllResources: true
                 }
             }
 

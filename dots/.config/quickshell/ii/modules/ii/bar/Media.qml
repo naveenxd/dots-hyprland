@@ -155,7 +155,7 @@ Item {
                 fill: 1
                 text: "auto_awesome"
                 iconSize: Appearance.font.pixelSize.normal
-                color: Appearance.colors.colSubtext
+                color: Appearance.colors.colOnLayer1
                 visible: !root.hasMedia
                 opacity: visible ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
@@ -170,7 +170,7 @@ Item {
                 lineWidth: Appearance.rounding.unsharpen
                 value: activePlayer?.position / activePlayer?.length
                 implicitSize: 20
-                colPrimary: Appearance.colors.colSubtext
+                colPrimary: Appearance.colors.colOnLayer1
                 enableAnimation: false
 
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
@@ -185,7 +185,7 @@ Item {
                         fill: 1
                         text: root.isPlaying ? "pause" : "play_arrow"
                         iconSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colSubtext
+                        color: Appearance.colors.colOnLayer1
                     }
                 }
             }
@@ -200,7 +200,7 @@ Item {
 
             readonly property string displayText: {
                 if (!root.hasMedia) {
-                    return "Everything happens for a reason";
+                    return GlobalStates.randomQuote;
                 }
                 if (root.hasLyrics) {
                     return LyricsService.currentLyricLine;
@@ -243,14 +243,14 @@ Item {
                 StyledText {
                     id: topBarMusicText
                     textFormat: Text.PlainText
-                    color: Appearance.colors.colSubtext
+                    color: Appearance.colors.colOnLayer1
                     text: topBarTextContainer.displayText
                 }
 
                 StyledText {
                     visible: topBarTextContainer.isOverflowing && topBarMarqueeAnim.running
                     textFormat: Text.PlainText
-                    color: Appearance.colors.colSubtext
+                    color: Appearance.colors.colOnLayer1
                     text: topBarTextContainer.displayText
                 }
 
@@ -273,7 +273,7 @@ Item {
             visible: root.hasMedia && (activePlayer?.length || 0) > 0
             Layout.alignment: Qt.AlignVCenter
             font.pixelSize: Appearance.font.pixelSize.small
-            color: Appearance.colors.colSubtext
+            color: Appearance.colors.colOnLayer1
             text: {
                 let pos = Math.max(0, activePlayer?.position || 0);
                 let len = Math.max(0, activePlayer?.length || 0);
