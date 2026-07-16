@@ -33,9 +33,43 @@ Singleton {
     property real lastKnownPosition: 0
     property real lastKnownTimestamp: 0
 
+    // Per-phase watchdog identities — separate IDs prevent a late GET response
+    // from cancelling the search-phase watchdog (or vice versa).
+    property int _wdGetFetchId: -1
+    property int _wdSearchFetchId: -1
+    property string _wdCleanTrack: ""
+    property string _wdCleanArtist: ""
+    property int _wdTargetDuration: 0
+    property string _wdCacheKey: ""
+
+    Timer {
+        id: getRequestWatchdog
+        interval: 10000
+        repeat: false
+        onTriggered: {
+            let id = root._wdGetFetchId;
+            if (id !== root.currentFetchId) return;
+            // Invalidate GET phase so any late XHR callback is ignored
+            root._wdGetFetchId = -1;
+            root.searchLyricsFallback(id, root._wdCleanTrack, root._wdCleanArtist, root._wdTargetDuration, root._wdCacheKey);
+        }
+    }
+
+    Timer {
+        id: searchRequestWatchdog
+        interval: 10000
+        repeat: false
+        onTriggered: {
+            if (root._wdSearchFetchId !== root.currentFetchId) return;
+            root.loading = false;
+        }
+    }
+
     function normalizeStr(s) {
         if (!s) return "";
-        return String(s).toLowerCase().normalize("NFC").replace(/[^\p{L}\p{N}]/gu, "");
+        // Use QML-compatible character class instead of Unicode property escapes (\p{L}\p{N})
+        // which are unsupported in Qt's V4 JS engine.
+        return String(s).toLowerCase().normalize("NFC").replace(/[^a-z0-9\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u4E00-\u9FFF\u3040-\u30FF]/g, "");
     }
 
     function findBestResult(results, targetTrack, targetArtist, targetDuration) {
@@ -114,13 +148,19 @@ Singleton {
         if (targetDuration > 0) {
             let getUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTrack)}&artist_name=${encodeURIComponent(cleanArtist)}&duration=${targetDuration}`;
             var getXhr = new XMLHttpRequest();
-            getXhr.timeout = 10000; // 10 seconds timeout
-            getXhr.ontimeout = function() {
-                if (myFetchId !== root.currentFetchId) return;
-                root.searchLyricsFallback(myFetchId, cleanTrack, cleanArtist, targetDuration, cacheKey);
-            };
+            root._wdGetFetchId = myFetchId;
+            root._wdCleanTrack = cleanTrack;
+            root._wdCleanArtist = cleanArtist;
+            root._wdTargetDuration = targetDuration;
+            root._wdCacheKey = cacheKey;
+            getRequestWatchdog.restart();
             getXhr.onreadystatechange = function() {
                 if (getXhr.readyState === XMLHttpRequest.DONE) {
+                    // If the watchdog already fired and handed off to search,
+                    // _wdGetFetchId will be -1 — discard this late response entirely.
+                    if (root._wdGetFetchId !== myFetchId) return;
+                    getRequestWatchdog.stop();
+                    root._wdGetFetchId = -1; // consume the GET slot
                     if (myFetchId !== root.currentFetchId) return;
                     if (getXhr.status === 200) {
                         try {
@@ -147,13 +187,12 @@ Singleton {
         let query = `${cleanTrack} ${cleanArtist}`.trim();
         let url = `https://lrclib.net/api/search?q=${encodeURIComponent(query)}`;
         var xhr = new XMLHttpRequest();
-        xhr.timeout = 10000; // 10 seconds timeout
-        xhr.ontimeout = function() {
-            if (fetchId !== root.currentFetchId) return;
-            root.loading = false;
-        };
+        root._wdSearchFetchId = fetchId;
+        searchRequestWatchdog.restart();
         xhr.onreadystatechange = function() {
             if (xhr.readyState === XMLHttpRequest.DONE) {
+                // Only stop if OUR watchdog is still the current one
+                if (root._wdSearchFetchId === fetchId) searchRequestWatchdog.stop();
                 if (fetchId !== root.currentFetchId) return;
                 root.loading = false;
                 if (xhr.status === 200) {
@@ -191,9 +230,7 @@ Singleton {
                         timeSec = (parseFloat(timeParts[0]) || 0) * 60.0 + (parseFloat(timeParts[1]) || 0);
                     }
                     let text = match[2].trim();
-                    if (text.length > 0) {
-                        parsed.push({ time: timeSec, text: text });
-                    }
+                    parsed.push({ time: timeSec, text: text });
                 }
             }
             root.lyricLines = parsed;
@@ -204,7 +241,7 @@ Singleton {
         if (!player) return false;
         let id = (player.identity || "").toLowerCase();
         let entry = (player.desktopEntry || "").toLowerCase();
-        let bus = (player.busName || "").toLowerCase();
+        let bus = (player.dbusName || "").toLowerCase();
         let isSpotify = id.includes("spotify") || entry.includes("spotify") || bus.includes("spotify");
         let isAudacious = id.includes("audacious") || entry.includes("audacious") || bus.includes("audacious");
         return isSpotify || isAudacious;
@@ -272,9 +309,10 @@ Singleton {
             let currentPx = root.measurePixelWidth(groupText);
             let j = i + 1;
 
-            if (currentPx < maxAllowedPx * 0.65) {
+            if (groupText !== "" && currentPx < maxAllowedPx * 0.65) {
                 while (j < lines.length) {
                     let nextText = lines[j].text;
+                    if (nextText === "") break;
                     let candidateText = groupText + " • " + nextText;
                     let candidatePx = root.measurePixelWidth(candidateText);
                     let gap = lines[j].time - lines[j - 1].time;

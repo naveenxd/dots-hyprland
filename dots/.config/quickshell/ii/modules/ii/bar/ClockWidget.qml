@@ -10,10 +10,10 @@ Item {
     property bool borderless: Config.options.bar.borderless
     property bool showDate: Config.options.bar.verbose
     property string timeFormat: {
-        let format = Config.options?.time.format ?? "hh:mm";
+        let format = Config.options?.time?.format ?? "hh:mm";
         if (Config.options?.time?.secondPrecision) {
             if (format.includes("ap") || format.includes("AP"))
-                return format.replace(/(?=\s+[aA][pP]$)/, ":ss");
+                return format.replace(/(?=\s*[aA][pP]$)/, ":ss");
             if (!format.includes("ss"))
                 return `${format}:ss`;
         }
@@ -57,6 +57,7 @@ Item {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: !Config.options.bar.tooltips.clickToShow
+        acceptedButtons: Qt.NoButton
 
         ClockWidgetPopup {
             hoverTarget: mouseArea

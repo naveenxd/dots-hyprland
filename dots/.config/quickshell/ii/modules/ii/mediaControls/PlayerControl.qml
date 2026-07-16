@@ -288,7 +288,6 @@ Item { // Player instance
 
                         SequentialAnimation on x {
                             id: marqueeAnim
-                            running: titleMarqueeContainer.isOverflowing && root.visible
                             loops: Animation.Infinite
                             PauseAnimation { duration: 1800 }
                             NumberAnimation {
@@ -355,7 +354,6 @@ Item { // Player instance
 
                         SequentialAnimation on x {
                             id: artistMarqueeAnim
-                            running: artistMarqueeContainer.isOverflowing && root.visible
                             loops: Animation.Infinite
                             PauseAnimation { duration: 2200 }
                             NumberAnimation {
@@ -385,7 +383,7 @@ Item { // Player instance
                         font.pixelSize: Appearance.font.pixelSize.small
                         color: blendedColors.colSubtext
                         elide: Text.ElideRight
-                        text: StringUtils.friendlyTimeForSeconds(root.player?.position)
+                        text: StringUtils.friendlyTimeForSeconds(root.interpolatedPosition)
                     }
 
                     StyledText {
@@ -404,6 +402,7 @@ Item { // Player instance
                         maximumLineCount: 1
                         visible: true
                         text: {
+                            if (root.player !== LyricsService.activePlayer) return "";
                             if (!LyricsService.isSupportedPlayer(root.player)) return "";
                             if (LyricsService.lyricLines.length > 0) return LyricsService.nextLyricLine;
                             if (LyricsService.loading) return "Fetching lyrics…";
@@ -449,7 +448,7 @@ Item { // Player instance
                                     highlightColor: blendedColors.colPrimary
                                     trackColor: blendedColors.colSecondaryContainer
                                     handleColor: blendedColors.colPrimary
-                                    value: root.interpolatedPosition / root.player?.length
+                                    value: (root.player?.length || 0) > 0 ? root.interpolatedPosition / root.player.length : 0
                                     onMoved: {
                                         let newPos = value * root.player.length;
                                         root.player.position = newPos;
@@ -472,7 +471,7 @@ Item { // Player instance
                                     wavy: root.player?.isPlaying
                                     highlightColor: blendedColors.colPrimary
                                     trackColor: blendedColors.colSecondaryContainer
-                                    value: root.interpolatedPosition / root.player?.length
+                                    value: (root.player?.length || 0) > 0 ? root.interpolatedPosition / root.player.length : 0
                                 }
                             }
 

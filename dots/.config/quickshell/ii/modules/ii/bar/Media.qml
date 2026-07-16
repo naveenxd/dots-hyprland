@@ -8,7 +8,6 @@ import Qt5Compat.GraphicalEffects
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import Quickshell.Services.Mpris
 import Quickshell.Hyprland
 
@@ -18,7 +17,7 @@ Item {
     readonly property MprisPlayer activePlayer: MprisController.activePlayer
     readonly property string cleanedTitle: StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || Translation.tr("No media")
 
-    property list<real> visualizerPoints: []
+    readonly property list<real> visualizerPoints: CavaService.points
 
     onWidthChanged: {
         if (root.width > 100) {
@@ -36,23 +35,6 @@ Item {
     readonly property bool isPaused: activePlayer != null && !root.isPlaying
     readonly property bool hasMedia: activePlayer != null && (root.isPlaying || (StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || "") !== "")
     readonly property bool hasLyrics: root.isPlaying && LyricsService.currentLyricLine && LyricsService.currentLyricLine.length > 0
-
-    Process {
-        id: cavaProc
-        running: root.isPlaying
-        onRunningChanged: {
-            if (!cavaProc.running) {
-                root.visualizerPoints = [];
-            }
-        }
-        command: ["cava", "-p", `${FileUtils.trimFileProtocol(Directories.scriptPath)}/cava/raw_output_config.txt`]
-        stdout: SplitParser {
-            onRead: data => {
-                let points = data.split(";").map(p => parseFloat(p.trim())).filter(p => !isNaN(p));
-                root.visualizerPoints = points;
-            }
-        }
-    }
 
 
     implicitHeight: Appearance.sizes.barHeight
@@ -115,6 +97,16 @@ Item {
         }
     }
 
+    Timer {
+        id: singleClickTimer
+        interval: 200
+        repeat: false
+        onTriggered: {
+            if (root.hasMedia) GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen;
+            else GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
+        }
+    }
+
     MouseArea {
         id: hoverArea
         anchors.fill: parent
@@ -122,6 +114,7 @@ Item {
         acceptedButtons: Qt.MiddleButton | Qt.BackButton | Qt.ForwardButton | Qt.RightButton | Qt.LeftButton
         onDoubleClicked: (event) => {
             if (event.button === Qt.LeftButton) {
+                singleClickTimer.stop();
                 GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
             }
         }
@@ -133,8 +126,7 @@ Item {
             } else if (event.button === Qt.ForwardButton || event.button === Qt.RightButton) {
                 if (root.hasMedia && activePlayer) activePlayer.next();
             } else if (event.button === Qt.LeftButton) {
-                if (root.hasMedia) GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen;
-                else GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
+                singleClickTimer.restart();
             }
         }
     }
@@ -213,10 +205,10 @@ Item {
                 let baseInfo = `${cleanedTitle}${artistStr ? ' • ' + artistStr : ''}`;
                 if (LyricsService.isSupportedPlayer(activePlayer)) {
                     if (LyricsService.loading) {
-                        return `${baseInfo} • Fetching lyrics…`;
+                        return `${baseInfo} • ${Translation.tr("Fetching lyrics…")}`;
                     }
                     if (LyricsService.lyricLines.length === 0) {
-                        return `${baseInfo} • No lyrics`;
+                        return `${baseInfo} • ${Translation.tr("No lyrics")}`;
                     }
                 }
                 return baseInfo;
@@ -225,18 +217,11 @@ Item {
             readonly property bool isOverflowing: width > 0 && topBarMusicText.implicitWidth > width + 5
 
             onDisplayTextChanged: {
-                topBarMarqueeAnim.stop();
                 topBarMarqueeRow.x = 0;
-                if (isOverflowing)
-                    topBarMarqueeAnim.start();
             }
             onIsOverflowingChanged: {
-                if (!isOverflowing) {
-                    topBarMarqueeAnim.stop();
+                if (!isOverflowing)
                     topBarMarqueeRow.x = 0;
-                } else {
-                    topBarMarqueeAnim.restart();
-                }
             }
 
             Row {

@@ -1,8 +1,8 @@
 -- scrolloverview plugin load directive (built from source at install time)
-hl.plugin.load("/home/naveenxd/.local/share/hyprland/plugins/scrolloverview.so")
+-- hl.plugin.load(os.getenv("HOME") .. "/.local/share/hyprland/plugins/scrolloverview.so")
 
 -- hyprbars plugin load directive (built from source at install time)
--- hl.plugin.load("/home/naveenxd/.local/share/hyprland/plugins/hyprbars.so")
+-- hl.plugin.load(os.getenv("HOME") .. "/.local/share/hyprland/plugins/hyprbars.so")
 
 -- This file will not be overwritten across dots-hyprland updates.
 -- The file name is for the sake of organization and does not matter

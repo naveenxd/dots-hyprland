@@ -183,17 +183,6 @@ Item { // Bar content region
                     property real realSpacing: 15
                     spacing: 0
 
-                    SysTray {
-                        id: sysTrayItem
-                        visible: root.useShortenedForm === 0
-                        Layout.fillWidth: false
-                        Layout.fillHeight: true
-                        Layout.preferredWidth: visible ? implicitWidth : 0
-                        invertSide: Config?.options.bar.bottom
-                        showSeparator: true
-                        Layout.rightMargin: 12
-                    }
-
                     Revealer {
                         reveal: Audio.sink?.audio?.muted ?? false
                         Layout.fillHeight: true
@@ -258,7 +247,17 @@ Item { // Bar content region
                 }
             }
 
-
+            SysTray {
+                id: sysTrayItem
+                visible: root.useShortenedForm === 0
+                Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                Layout.fillWidth: false
+                Layout.fillHeight: true
+                Layout.preferredWidth: visible ? implicitWidth : 0
+                invertSide: Config?.options.bar.bottom
+                showSeparator: true
+                Layout.rightMargin: visible ? 8 : 0
+            }
 
             Item { Layout.fillWidth: true; Layout.fillHeight: true }
 
