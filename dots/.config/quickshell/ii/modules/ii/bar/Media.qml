@@ -16,30 +16,29 @@ Item {
     property bool borderless: Config.options.bar.borderless
     readonly property MprisPlayer activePlayer: MprisController.activePlayer
     readonly property string cleanedTitle: StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || Translation.tr("No media")
-
     readonly property list<real> visualizerPoints: CavaService.points
 
+    readonly property bool isCompact: Config.options.bar.media.size === "compact"
+    readonly property bool isPlaying: activePlayer?.playbackState === MprisPlaybackState.Playing
+    readonly property bool hasMedia: activePlayer != null && (root.isPlaying || (StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || "") !== "")
+    // Only show lyrics when available AND in wide mode — no placeholders ever
+    readonly property bool showLyrics: !root.isCompact && root.isPlaying
+        && Config.options.bar.media.showLyrics
+        && LyricsService.currentLyricLine
+        && LyricsService.currentLyricLine.length > 0
+
     onWidthChanged: {
-        if (root.width > 100) {
-            GlobalStates.topBarMediaWidth = root.width;
-        }
+        if (root.width > 100) GlobalStates.topBarMediaWidth = root.width;
     }
     Component.onCompleted: {
-        if (root.width > 100) {
-            GlobalStates.topBarMediaWidth = root.width;
-        }
+        if (root.width > 100) GlobalStates.topBarMediaWidth = root.width;
     }
 
-    // State helpers
-    readonly property bool isPlaying: activePlayer?.playbackState === MprisPlaybackState.Playing
-    readonly property bool isPaused: activePlayer != null && !root.isPlaying
-    readonly property bool hasMedia: activePlayer != null && (root.isPlaying || (StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || "") !== "")
-    readonly property bool hasLyrics: root.isPlaying && LyricsService.currentLyricLine && LyricsService.currentLyricLine.length > 0
-
-
-    // Compact = narrow pill; wide = wider pill (naveenxd style)
-    readonly property bool isCompact: Config.options.bar.media.size === "compact"
-    implicitWidth: isCompact ? 300 : 520
+    // Compact: content-driven narrow pill. Wide: fill left section.
+    Layout.fillHeight: true
+    implicitWidth: root.isCompact
+        ? (rowLayout.implicitWidth + 20)
+        : (parent?.width ?? 520)
     implicitHeight: Appearance.sizes.barHeight
 
     Timer {
@@ -49,7 +48,7 @@ Item {
         onTriggered: activePlayer.positionChanged()
     }
 
-    // Background pill
+    // Background pill — only visible in wide mode (compact is borderless/transparent)
     Rectangle {
         id: bgContainer
         anchors.left: parent.left
@@ -57,22 +56,20 @@ Item {
         anchors.bottom: parent.bottom
         anchors.topMargin: 4
         anchors.bottomMargin: 4
-        width: root.isCompact ? Math.min(parent.width, 300) : parent.width
+        width: root.isCompact ? rowLayout.implicitWidth + 20 : parent.width
         Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
         radius: Appearance.rounding.small
-        color: Config.options?.bar.borderless ? "transparent" : (hoverArea.containsMouse ? Appearance.colors.colLayer1Hover : Appearance.colors.colLayer1)
+        color: root.isCompact
+            ? "transparent"
+            : (Config.options?.bar.borderless ? "transparent" : (hoverArea.containsMouse ? Appearance.colors.colLayer1Hover : Appearance.colors.colLayer1))
         border.width: 0
         Behavior on color { ColorAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
-        // Clipped visualizer container matching pill border radius curve
+        // Waveform visualizer — wide mode only
         Item {
             id: visualizerContainer
             anchors.fill: parent
-            anchors.leftMargin: 0
-            anchors.rightMargin: 0
-            anchors.topMargin: 0
-            anchors.bottomMargin: 0
-
+            visible: !root.isCompact
             layer.enabled: true
             layer.effect: OpacityMask {
                 maskSource: Rectangle {
@@ -81,7 +78,6 @@ Item {
                     radius: bgContainer.radius
                 }
             }
-
             WaveVisualizer {
                 id: visualizerBg
                 anchors.left: parent.left
@@ -91,9 +87,9 @@ Item {
                 anchors.bottomMargin: -12
                 layer.enabled: false
                 visible: opacity > 0
-                opacity: (Config.options.bar.media.showVisualizer && root.isPlaying && !GlobalStates.mediaControlsOpen && root.visualizerPoints.length > 0) ? 1 : 0
+                opacity: (root.isPlaying && !GlobalStates.mediaControlsOpen && root.visualizerPoints.length > 0) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
-                live: Config.options.bar.media.showVisualizer && root.isPlaying && !GlobalStates.mediaControlsOpen
+                live: root.isPlaying && !GlobalStates.mediaControlsOpen
                 points: root.visualizerPoints
                 maxVisualizerValue: 850
                 smoothing: 1
@@ -138,23 +134,21 @@ Item {
 
     RowLayout {
         id: rowLayout
-        spacing: 10
+        spacing: root.isCompact ? 4 : 10
         anchors.left: bgContainer.left
         anchors.right: bgContainer.right
         anchors.top: bgContainer.top
         anchors.bottom: bgContainer.bottom
-        anchors.leftMargin: 10
-        anchors.rightMargin: 14
+        anchors.leftMargin: root.isCompact ? 0 : 10
+        anchors.rightMargin: root.isCompact ? 0 : 14
 
-        // Contextual icon: quote sparkle / play-pause progress / paused
+        // Icon: progress ring with play/pause
         Item {
             Layout.alignment: Qt.AlignVCenter
             implicitWidth: 20
             implicitHeight: 20
 
-            // Quote icon (no player active)
             MaterialSymbol {
-                id: quoteIcon
                 anchors.centerIn: parent
                 fill: 1
                 text: "auto_awesome"
@@ -165,7 +159,6 @@ Item {
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
             }
 
-            // Circular progress with play/pause (player active)
             ClippedFilledCircularProgress {
                 id: mediaCircProg
                 anchors.centerIn: parent
@@ -176,14 +169,12 @@ Item {
                 implicitSize: 20
                 colPrimary: Appearance.colors.colOnLayer1
                 enableAnimation: false
-
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 Item {
                     anchors.centerIn: parent
                     width: mediaCircProg.implicitSize
                     height: mediaCircProg.implicitSize
-
                     MaterialSymbol {
                         anchors.centerIn: parent
                         fill: 1
@@ -195,6 +186,7 @@ Item {
             }
         }
 
+        // Text: title • artist | lyrics (wide only, no placeholders)
         Item {
             id: topBarTextContainer
             Layout.fillWidth: true
@@ -203,34 +195,17 @@ Item {
             clip: true
 
             readonly property string displayText: {
-                if (!root.hasMedia) {
-                    return GlobalStates.randomQuote;
-                }
-                if (Config.options.bar.media.showLyrics && root.hasLyrics) {
-                    return LyricsService.currentLyricLine;
-                }
+                if (!root.hasMedia) return root.isCompact ? GlobalStates.randomQuote : GlobalStates.randomQuote;
+                // Wide + lyrics available: show lyrics
+                if (root.showLyrics) return LyricsService.currentLyricLine;
+                // Otherwise: title • artist (no "No lyrics" / "Fetching" placeholders)
                 let artistStr = activePlayer?.trackArtist || "";
-                let baseInfo = `${cleanedTitle}${artistStr ? ' • ' + artistStr : ''}`;
-                if (Config.options.bar.media.showLyrics && LyricsService.isSupportedPlayer(activePlayer)) {
-                    if (LyricsService.loading) {
-                        return `${baseInfo} • ${Translation.tr("Fetching lyrics…")}`;
-                    }
-                    if (LyricsService.lyricLines.length === 0) {
-                        return `${baseInfo} • ${Translation.tr("No lyrics")}`;
-                    }
-                }
-                return baseInfo;
+                return `${cleanedTitle}${artistStr ? ' • ' + artistStr : ''}`;
             }
 
             readonly property bool isOverflowing: width > 0 && topBarMusicText.implicitWidth > width + 5
-
-            onDisplayTextChanged: {
-                topBarMarqueeRow.x = 0;
-            }
-            onIsOverflowingChanged: {
-                if (!isOverflowing)
-                    topBarMarqueeRow.x = 0;
-            }
+            onDisplayTextChanged: topBarMarqueeRow.x = 0;
+            onIsOverflowingChanged: { if (!isOverflowing) topBarMarqueeRow.x = 0; }
 
             Row {
                 id: topBarMarqueeRow
@@ -243,7 +218,6 @@ Item {
                     color: Appearance.colors.colOnLayer1
                     text: topBarTextContainer.displayText
                 }
-
                 StyledText {
                     visible: topBarTextContainer.isOverflowing && topBarMarqueeAnim.running
                     textFormat: Text.PlainText
@@ -265,6 +239,7 @@ Item {
             }
         }
 
+        // Time — wide mode only
         StyledText {
             id: trackTimeText
             readonly property string timeDisplay: Config.options.bar.media.timeDisplay
@@ -278,7 +253,7 @@ Item {
                 let rem = Math.max(0, len - pos);
                 if (timeDisplay === "played") return StringUtils.friendlyTimeForSeconds(pos);
                 if (timeDisplay === "both") return `${StringUtils.friendlyTimeForSeconds(pos)}/${StringUtils.friendlyTimeForSeconds(len)}`;
-                return `-${StringUtils.friendlyTimeForSeconds(rem)}`; // "remaining" default
+                return `-${StringUtils.friendlyTimeForSeconds(rem)}`;
             }
         }
     }

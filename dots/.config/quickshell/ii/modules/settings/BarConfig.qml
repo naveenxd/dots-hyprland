@@ -52,7 +52,9 @@ ContentPage {
             }
         }
 
+        // Wide-only options — hidden in compact
         ConfigSwitch {
+            visible: Config.options.bar.media.size === "wide"
             buttonIcon: "graphic_eq"
             text: Translation.tr("Show waveform visualizer")
             checked: Config.options.bar.media.showVisualizer
@@ -60,6 +62,7 @@ ContentPage {
         }
 
         ConfigSwitch {
+            visible: Config.options.bar.media.size === "wide"
             buttonIcon: "lyrics"
             text: Translation.tr("Show lyrics in bar")
             checked: Config.options.bar.media.showLyrics
@@ -67,6 +70,7 @@ ContentPage {
         }
 
         ConfigRow {
+            visible: Config.options.bar.media.size === "wide"
             ContentSubsection {
                 title: Translation.tr("Time display")
                 Layout.fillWidth: true
@@ -83,6 +87,7 @@ ContentPage {
             }
         }
     }
+
     
     ContentSection {
         icon: "spoke"
