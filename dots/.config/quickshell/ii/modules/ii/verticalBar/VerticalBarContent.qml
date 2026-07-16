@@ -76,7 +76,7 @@ Item { // Bar content region
             Item {
                 Layout.fillHeight: true
             }
-            
+
         }
     }
 
@@ -92,7 +92,7 @@ Item { // Bar content region
                 Layout.fillWidth: true
                 Layout.fillHeight: false
             }
-            
+
             HorizontalBarSeparator {}
 
             VerticalMedia {
@@ -134,22 +134,22 @@ Item { // Bar content region
         Bar.BarGroup {
             vertical: true
             padding: 8
-            
+
             VerticalClockWidget {
                 Layout.fillWidth: true
                 Layout.fillHeight: false
             }
 
             HorizontalBarSeparator {
-                visible: Battery.available
+                visible: Battery.available && Config.options?.bar?.indicators?.showBattery
             }
 
             BatteryIndicator {
-                visible: Battery.available
+                visible: Battery.available && Config.options?.bar?.indicators?.showBattery
                 Layout.fillWidth: true
                 Layout.fillHeight: false
             }
-            
+
         }
     }
 
@@ -163,7 +163,7 @@ Item { // Bar content region
         }
         implicitWidth: Appearance.sizes.baseVerticalBarWidth
         implicitHeight: bottomSectionColumnLayout.implicitHeight
-        
+
         onScrollDown: Audio.decrementVolume();
         onScrollUp: Audio.incrementVolume();
         onMovedAway: GlobalStates.osdVolumeOpen = false;
@@ -178,9 +178,9 @@ Item { // Bar content region
             anchors.fill: parent
             spacing: 4
 
-            Item { 
+            Item {
                 Layout.fillWidth: true
-                Layout.fillHeight: true 
+                Layout.fillHeight: true
             }
 
             Bar.SysTray {

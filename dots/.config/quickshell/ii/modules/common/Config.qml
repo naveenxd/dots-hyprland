@@ -278,6 +278,7 @@ Singleton {
                     property JsonObject notifications: JsonObject {
                         property bool showUnreadCount: false
                     }
+                    property bool showBattery: true
                 }
                 property JsonObject tooltips: JsonObject {
                     property bool clickToShow: false

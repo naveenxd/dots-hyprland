@@ -9,12 +9,14 @@ Item {
     id: root
     property bool borderless: Config.options.bar.borderless
     property bool showDate: Config.options.bar.verbose
-    property string timeFormatWithSeconds: {
-        let format = Config.options?.time.format ?? "hh:mm";
-        if (format.includes("ap") || format.includes("AP"))
-            return format.replace(/(?=\s+[aA][pP]$)/, ":ss");
-        if (!format.includes("ss"))
-            return `${format}:ss`;
+    property string timeFormat: {
+        let format = Config.options?.time?.format ?? "hh:mm";
+        if (Config.options?.time?.secondPrecision) {
+            if (format.includes("ap") || format.includes("AP"))
+                return format.replace(/(?=\s*[aA][pP]$)/, ":ss");
+            if (!format.includes("ss"))
+                return `${format}:ss`;
+        }
         return format;
     }
     implicitWidth: rowLayout.implicitWidth
@@ -22,7 +24,7 @@ Item {
 
     SystemClock {
         id: barClock
-        precision: SystemClock.Seconds
+        precision: Config.options?.time?.secondPrecision ? SystemClock.Seconds : SystemClock.Minutes
     }
 
     RowLayout {
@@ -33,7 +35,7 @@ Item {
         StyledText {
             font.pixelSize: Appearance.font.pixelSize.large
             color: Appearance.colors.colOnLayer1
-            text: Qt.locale().toString(barClock.date, root.timeFormatWithSeconds)
+            text: Qt.locale().toString(barClock.date, root.timeFormat)
         }
 
         StyledText {
@@ -55,6 +57,7 @@ Item {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: !Config.options.bar.tooltips.clickToShow
+        acceptedButtons: Qt.NoButton
 
         ClockWidgetPopup {
             hoverTarget: mouseArea

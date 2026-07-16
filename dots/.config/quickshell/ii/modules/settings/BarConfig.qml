@@ -19,6 +19,19 @@ ContentPage {
             }
         }
     }
+
+    ContentSection {
+        icon: "battery_charging_full"
+        title: Translation.tr("Battery")
+        ConfigSwitch {
+            buttonIcon: "battery_std"
+            text: Translation.tr("Show battery indicator")
+            checked: Config.options.bar.indicators.showBattery
+            onCheckedChanged: {
+                Config.options.bar.indicators.showBattery = checked;
+            }
+        }
+    }
     
     ContentSection {
         icon: "spoke"

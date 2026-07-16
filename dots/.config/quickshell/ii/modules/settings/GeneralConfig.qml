@@ -292,7 +292,7 @@ ContentPage {
 
         ConfigSwitch {
             buttonIcon: "pace"
-            text: Translation.tr("Second precision")
+            text: Translation.tr("Seconds")
             checked: Config.options.time.secondPrecision
             onCheckedChanged: {
                 Config.options.time.secondPrecision = checked;
@@ -301,7 +301,6 @@ ContentPage {
                 text: Translation.tr("Enable if you want clocks to show seconds accurately")
             }
         }
-
         ContentSubsection {
             title: Translation.tr("Format")
             tooltip: ""
@@ -333,6 +332,7 @@ ContentPage {
                 ]
             }
         }
+
     }
 
     ContentSection {
