@@ -21,10 +21,14 @@ Item { // Bar content region
     Component { id: compBatteryIndicator; BatteryIndicator { Layout.alignment: Qt.AlignVCenter; visible: (root.useShortenedForm < 2 && Battery.available) } }
     Component { id: compLyrics; Lyrics { Layout.alignment: Qt.AlignVCenter } }
 
-    // Only activewindow should expand to fill remaining left space.
-    // Everything else (lyrics, etc.) uses its own implicitWidth.
+    // Lyrics fills width if present (to stretch in between title and workspaces),
+    // otherwise activewindow stretches.
     function fillsWidth(name) {
-        return name.trim().toLowerCase() === "activewindow";
+        let n = name.trim().toLowerCase();
+        let leftLayout = Config.options.bar.layout.left.split(",").map(x => x.trim().toLowerCase());
+        if (n === "lyrics") return true;
+        if (n === "activewindow") return !leftLayout.includes("lyrics");
+        return false;
     }
 
     function getComponent(name) {
@@ -128,6 +132,7 @@ Item { // Bar content region
                     // Only activewindow stretches — lyrics and others use their own implicitWidth
                     Layout.fillWidth: root.fillsWidth(modelData)
                     Layout.fillHeight: true
+                    Layout.maximumWidth: modelData.trim().toLowerCase() === "activewindow" ? 250 : 9999
                     width: implicitWidth
                     height: implicitHeight
                     Binding {
