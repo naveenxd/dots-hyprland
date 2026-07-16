@@ -268,7 +268,7 @@ Item {
         StyledText {
             id: trackTimeText
             readonly property string timeDisplay: Config.options.bar.media.timeDisplay
-            visible: root.hasMedia && (activePlayer?.length || 0) > 0 && timeDisplay !== "off"
+            visible: !root.isCompact && root.hasMedia && (activePlayer?.length || 0) > 0 && timeDisplay !== "off"
             Layout.alignment: Qt.AlignVCenter
             font.pixelSize: Appearance.font.pixelSize.small
             color: Appearance.colors.colOnLayer1
