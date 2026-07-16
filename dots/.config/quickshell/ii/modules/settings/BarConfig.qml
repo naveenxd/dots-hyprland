@@ -37,24 +37,7 @@ ContentPage {
         icon: "music_note"
         title: Translation.tr("Media")
 
-        ConfigRow {
-            ContentSubsection {
-                title: Translation.tr("Pill size")
-                Layout.fillWidth: true
-                ConfigSelectionArray {
-                    currentValue: Config.options.bar.media.size
-                    onSelected: newValue => { Config.options.bar.media.size = newValue; }
-                    options: [
-                        { displayName: Translation.tr("Compact"), icon: "density_small", value: "compact" },
-                        { displayName: Translation.tr("Wide"),    icon: "density_large", value: "wide" }
-                    ]
-                }
-            }
-        }
-
-        // Wide-only options — hidden in compact
         ConfigSwitch {
-            visible: Config.options.bar.media.size === "wide"
             buttonIcon: "graphic_eq"
             text: Translation.tr("Show waveform visualizer")
             checked: Config.options.bar.media.showVisualizer
@@ -62,32 +45,60 @@ ContentPage {
         }
 
         ConfigSwitch {
-            visible: Config.options.bar.media.size === "wide"
             buttonIcon: "lyrics"
-            text: Translation.tr("Show lyrics in bar")
+            text: Translation.tr("Show lyrics widget in bar")
             checked: Config.options.bar.media.showLyrics
             onCheckedChanged: { Config.options.bar.media.showLyrics = checked; }
         }
-
-        ConfigRow {
-            visible: Config.options.bar.media.size === "wide"
-            ContentSubsection {
-                title: Translation.tr("Time display")
+    }
+    ContentSection {
+        icon: "view_column"
+        title: Translation.tr("Widget Layout")
+        
+        ContentSubsection {
+            title: Translation.tr("Left widgets (e.g. activewindow)")
+            MaterialTextArea {
                 Layout.fillWidth: true
-                ConfigSelectionArray {
-                    currentValue: Config.options.bar.media.timeDisplay
-                    onSelected: newValue => { Config.options.bar.media.timeDisplay = newValue; }
-                    options: [
-                        { displayName: Translation.tr("Off"),       icon: "timer_off",  value: "off" },
-                        { displayName: Translation.tr("Played"),    icon: "play_arrow", value: "played" },
-                        { displayName: Translation.tr("Remaining"), icon: "timer",      value: "remaining" },
-                        { displayName: Translation.tr("Both"),      icon: "more_time",  value: "both" }
-                    ]
-                }
+                text: Config.options.bar.layout.left
+                wrapMode: TextEdit.NoWrap
+                onTextChanged: Config.options.bar.layout.left = text
             }
         }
+        ContentSubsection {
+            title: Translation.tr("Center-Left widgets (e.g. resources, media)")
+            MaterialTextArea {
+                Layout.fillWidth: true
+                text: Config.options.bar.layout.centerLeft
+                wrapMode: TextEdit.NoWrap
+                onTextChanged: Config.options.bar.layout.centerLeft = text
+            }
+        }
+        ContentSubsection {
+            title: Translation.tr("Center widgets (e.g. workspaces)")
+            MaterialTextArea {
+                Layout.fillWidth: true
+                text: Config.options.bar.layout.center
+                wrapMode: TextEdit.NoWrap
+                onTextChanged: Config.options.bar.layout.center = text
+            }
+        }
+        ContentSubsection {
+            title: Translation.tr("Center-Right widgets (e.g. clock, utils, battery)")
+            MaterialTextArea {
+                Layout.fillWidth: true
+                text: Config.options.bar.layout.centerRight
+                wrapMode: TextEdit.NoWrap
+                onTextChanged: Config.options.bar.layout.centerRight = text
+            }
+        }
+        StyledText {
+            Layout.fillWidth: true
+            text: Translation.tr("Available widgets: activewindow, lyrics, media, resources, workspaces, clock, utils, battery. Comma-separated.")
+            color: Appearance.colors.colOnLayer1
+            font.pixelSize: Appearance.font.pixelSize.small
+            wrapMode: Text.WordWrap
+        }
     }
-
     
     ContentSection {
         icon: "spoke"

@@ -282,14 +282,17 @@ Singleton {
                 }
                 property JsonObject media: JsonObject {
                     property bool showVisualizer: true  // Waveform visualizer behind media pill
-                    property bool showLyrics: true      // Lyrics ticker in media pill
-                    // "compact" = thin bar pill | "wide" = wider pill (naveenxd style)
-                    property string size: "compact"
-                    // "off" | "played" | "remaining" | "both" (played/total)
-                    property string timeDisplay: "remaining"
+                    property bool showLyrics: true      // Separate scrolling lyrics widget in left bar
                 }
                 property JsonObject tooltips: JsonObject {
                     property bool clickToShow: false
+                }
+                property JsonObject layout: JsonObject {
+                    property string left: "activewindow,lyrics"
+                    property string centerLeft: "resources,media"
+                    property string center: "workspaces"
+                    property string centerRight: "clock,utils,battery"
+                    property string right: ""
                 }
             }
 

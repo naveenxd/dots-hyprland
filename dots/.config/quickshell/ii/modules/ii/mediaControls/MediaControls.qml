@@ -19,7 +19,7 @@ Scope {
     readonly property var realPlayers: MprisController.players
     readonly property var meaningfulPlayers: filterDuplicatePlayers(realPlayers)
     readonly property real osdWidth: Appearance.sizes.osdWidth
-    readonly property real widgetWidth: !Config.options.bar.vertical && GlobalStates.topBarMediaWidth > 100 ? GlobalStates.topBarMediaWidth : Appearance.sizes.mediaControlsWidth
+    readonly property real widgetWidth: Appearance.sizes.mediaControlsWidth
     readonly property real widgetHeight: Appearance.sizes.mediaControlsHeight
     property real popupRounding: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
     readonly property list<real> visualizerPoints: CavaService.points
@@ -85,7 +85,22 @@ Scope {
             margins {
                 top: Config.options.bar.vertical ? ((panelWindow.screen.height / 2) - widgetHeight * 1.5) : Appearance.sizes.barHeight
                 bottom: Appearance.sizes.barHeight
-                left: Config.options.bar.vertical ? Appearance.sizes.barHeight : ((Config.options.bar.cornerStyle === 1 ? Appearance.sizes.hyprlandGapsOut : 0) + Appearance.rounding.screenRounding)
+                left: {
+                    // Force dependency so it re-evaluates when popover opens
+                    let dummy = GlobalStates.mediaControlsOpen;
+                    if (Config.options.bar.vertical) return Appearance.sizes.barHeight;
+                    let mediaItem = GlobalStates.topBarMediaItem;
+                    if (mediaItem) {
+                        let glob = mediaItem.mapToItem(null, 0, 0);
+                        if (glob) {
+                            let targetX = glob.x + (mediaItem.width / 2) - (widgetWidth / 2);
+                            let minX = (Config.options.bar.cornerStyle === 1 ? Appearance.sizes.hyprlandGapsOut : 0) + Appearance.rounding.screenRounding;
+                            let maxX = panelWindow.screen.width - widgetWidth - minX;
+                            return Math.max(minX, Math.min(targetX, maxX));
+                        }
+                    }
+                    return (panelWindow.screen.width / 2) - (osdWidth / 2) - widgetWidth;
+                }
                 right: Appearance.sizes.barHeight
             }
 

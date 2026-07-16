@@ -18,58 +18,65 @@ Item {
     readonly property string cleanedTitle: StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || Translation.tr("No media")
     readonly property list<real> visualizerPoints: CavaService.points
 
-    readonly property bool isCompact: Config.options.bar.media.size === "compact"
     readonly property bool isPlaying: activePlayer?.playbackState === MprisPlaybackState.Playing
-    readonly property bool hasMedia: activePlayer != null && (root.isPlaying || (StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || "") !== "")
-    // Only show lyrics when available AND in wide mode — no placeholders ever
-    readonly property bool showLyrics: !root.isCompact && root.isPlaying
-        && Config.options.bar.media.showLyrics
-        && LyricsService.currentLyricLine
-        && LyricsService.currentLyricLine.length > 0
+    readonly property bool hasMedia: activePlayer != null && (isPlaying || (StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || "") !== "")
 
     onWidthChanged: {
         if (root.width > 100) GlobalStates.topBarMediaWidth = root.width;
+        updateGlobalX();
     }
+    onXChanged: updateGlobalX()
     Component.onCompleted: {
         if (root.width > 100) GlobalStates.topBarMediaWidth = root.width;
+        updateGlobalX();
+        GlobalStates.topBarMediaItem = root;
+    }
+    Component.onDestruction: {
+        if (GlobalStates.topBarMediaItem === root) {
+            GlobalStates.topBarMediaItem = null;
+        }
     }
 
-    // Compact: content-driven narrow pill. Wide: fill left section.
+    function updateGlobalX() {
+        var glob = mapToItem(null, 0, 0);
+        if (glob) {
+            GlobalStates.topBarMediaX = glob.x;
+        }
+    }
+
     Layout.fillHeight: true
-    implicitWidth: root.isCompact
-        ? (rowLayout.implicitWidth + 20)
-        : (parent?.width ?? 520)
+    implicitWidth: rowLayout.implicitWidth + rowLayout.spacing * 2
     implicitHeight: Appearance.sizes.barHeight
 
     Timer {
         running: root.isPlaying
-        interval: 1000
+        interval: Config.options.resources.updateInterval
         repeat: true
         onTriggered: activePlayer.positionChanged()
     }
 
-    // Background pill — only visible in wide mode (compact is borderless/transparent)
+    // Pill background with waveform visualizer (naveenxd feature, kept)
     Rectangle {
         id: bgContainer
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.topMargin: 4
-        anchors.bottomMargin: 4
-        width: root.isCompact ? rowLayout.implicitWidth + 20 : parent.width
-        Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: parent.top
+            bottom: parent.bottom
+            topMargin: 4
+            bottomMargin: 4
+        }
         radius: Appearance.rounding.small
-        color: root.isCompact
+        color: Config.options?.bar.borderless
             ? "transparent"
-            : (Config.options?.bar.borderless ? "transparent" : (hoverArea.containsMouse ? Appearance.colors.colLayer1Hover : Appearance.colors.colLayer1))
-        border.width: 0
+            : (hoverArea.containsMouse ? Appearance.colors.colLayer1Hover : Appearance.colors.colLayer1)
         Behavior on color { ColorAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
-        // Waveform visualizer — wide mode only
+        // Waveform visualizer background
         Item {
             id: visualizerContainer
             anchors.fill: parent
-            visible: !root.isCompact
+            visible: Config.options.bar.media.showVisualizer
             layer.enabled: true
             layer.effect: OpacityMask {
                 maskSource: Rectangle {
@@ -79,12 +86,13 @@ Item {
                 }
             }
             WaveVisualizer {
-                id: visualizerBg
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: -12
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    bottom: parent.bottom
+                    bottomMargin: -12
+                }
                 layer.enabled: false
                 visible: opacity > 0
                 opacity: (root.isPlaying && !GlobalStates.mediaControlsOpen && root.visualizerPoints.length > 0) ? 1 : 0
@@ -98,27 +106,12 @@ Item {
         }
     }
 
-    Timer {
-        id: singleClickTimer
-        interval: 200
-        repeat: false
-        onTriggered: {
-            if (root.hasMedia) GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen;
-            else GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
-        }
-    }
-
+    // Exactly like original — direct click, no timer delay
     MouseArea {
         id: hoverArea
         anchors.fill: parent
         hoverEnabled: true
         acceptedButtons: Qt.MiddleButton | Qt.BackButton | Qt.ForwardButton | Qt.RightButton | Qt.LeftButton
-        onDoubleClicked: (event) => {
-            if (event.button === Qt.LeftButton) {
-                singleClickTimer.stop();
-                GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
-            }
-        }
         onPressed: (event) => {
             if (event.button === Qt.MiddleButton) {
                 if (root.hasMedia && activePlayer) activePlayer.togglePlaying();
@@ -127,66 +120,48 @@ Item {
             } else if (event.button === Qt.ForwardButton || event.button === Qt.RightButton) {
                 if (root.hasMedia && activePlayer) activePlayer.next();
             } else if (event.button === Qt.LeftButton) {
-                singleClickTimer.restart();
+                GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen;
             }
         }
     }
 
     RowLayout {
         id: rowLayout
-        spacing: root.isCompact ? 4 : 10
-        anchors.left: bgContainer.left
-        anchors.right: bgContainer.right
-        anchors.top: bgContainer.top
-        anchors.bottom: bgContainer.bottom
-        anchors.leftMargin: root.isCompact ? 0 : 10
-        anchors.rightMargin: root.isCompact ? 0 : 14
+        spacing: 4
+        anchors {
+            left: bgContainer.left
+            right: bgContainer.right
+            top: bgContainer.top
+            bottom: bgContainer.bottom
+            leftMargin: 10
+            rightMargin: 14
+        }
 
-        // Icon: progress ring with play/pause
-        Item {
+        // Progress ring with play/pause icon — exactly like original
+        ClippedFilledCircularProgress {
+            id: mediaCircProg
             Layout.alignment: Qt.AlignVCenter
-            implicitWidth: 20
-            implicitHeight: 20
+            lineWidth: Appearance.rounding.unsharpen
+            value: activePlayer?.position / activePlayer?.length
+            implicitSize: 20
+            colPrimary: Appearance.colors.colOnSecondaryContainer
+            enableAnimation: false
 
-            MaterialSymbol {
+            Item {
                 anchors.centerIn: parent
-                fill: 1
-                text: "auto_awesome"
-                iconSize: Appearance.font.pixelSize.normal
-                color: Appearance.colors.colOnLayer1
-                visible: !root.hasMedia
-                opacity: visible ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
-            }
-
-            ClippedFilledCircularProgress {
-                id: mediaCircProg
-                anchors.centerIn: parent
-                visible: root.hasMedia
-                opacity: visible ? 1 : 0
-                lineWidth: Appearance.rounding.unsharpen
-                value: activePlayer?.position / activePlayer?.length
-                implicitSize: 20
-                colPrimary: Appearance.colors.colOnLayer1
-                enableAnimation: false
-                Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
-
-                Item {
+                width: mediaCircProg.implicitSize
+                height: mediaCircProg.implicitSize
+                MaterialSymbol {
                     anchors.centerIn: parent
-                    width: mediaCircProg.implicitSize
-                    height: mediaCircProg.implicitSize
-                    MaterialSymbol {
-                        anchors.centerIn: parent
-                        fill: 1
-                        text: root.isPlaying ? "pause" : "play_arrow"
-                        iconSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer1
-                    }
+                    fill: 1
+                    text: root.isPlaying ? "pause" : "music_note"
+                    iconSize: Appearance.font.pixelSize.normal
+                    color: Appearance.m3colors.m3onSecondaryContainer
                 }
             }
         }
 
-        // Text: title • artist | lyrics (wide only, no placeholders)
+        // Title • Artist with horizontal marquee on overflow
         Item {
             id: topBarTextContainer
             Layout.fillWidth: true
@@ -195,10 +170,7 @@ Item {
             clip: true
 
             readonly property string displayText: {
-                if (!root.hasMedia) return root.isCompact ? GlobalStates.randomQuote : GlobalStates.randomQuote;
-                // Wide + lyrics available: show lyrics
-                if (root.showLyrics) return LyricsService.currentLyricLine;
-                // Otherwise: title • artist (no "No lyrics" / "Fetching" placeholders)
+                if (!root.hasMedia) return "";
                 let artistStr = activePlayer?.trackArtist || "";
                 return `${cleanedTitle}${artistStr ? ' • ' + artistStr : ''}`;
             }
@@ -234,26 +206,9 @@ Item {
                         from: 0
                         to: -(topBarMusicText.implicitWidth + topBarMarqueeRow.spacing)
                         duration: Math.max(3000, topBarMusicText.implicitWidth * 25)
+                        easing.type: Easing.Linear
                     }
                 }
-            }
-        }
-
-        // Time — wide mode only
-        StyledText {
-            id: trackTimeText
-            readonly property string timeDisplay: Config.options.bar.media.timeDisplay
-            visible: !root.isCompact && root.hasMedia && (activePlayer?.length || 0) > 0 && timeDisplay !== "off"
-            Layout.alignment: Qt.AlignVCenter
-            font.pixelSize: Appearance.font.pixelSize.small
-            color: Appearance.colors.colOnLayer1
-            text: {
-                let pos = Math.max(0, activePlayer?.position || 0);
-                let len = Math.max(0, activePlayer?.length || 0);
-                let rem = Math.max(0, len - pos);
-                if (timeDisplay === "played") return StringUtils.friendlyTimeForSeconds(pos);
-                if (timeDisplay === "both") return `${StringUtils.friendlyTimeForSeconds(pos)}/${StringUtils.friendlyTimeForSeconds(len)}`;
-                return `-${StringUtils.friendlyTimeForSeconds(rem)}`;
             }
         }
     }

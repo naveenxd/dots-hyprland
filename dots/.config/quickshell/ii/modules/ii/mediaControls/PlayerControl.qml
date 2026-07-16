@@ -400,13 +400,13 @@ Item { // Player instance
                         opacity: LyricsService.lyricLines.length > 0 ? 0.85 : 0.45
                         elide: Text.ElideRight
                         maximumLineCount: 1
-                        visible: true
+                        visible: text !== ""
                         text: {
                             if (root.player !== LyricsService.activePlayer) return "";
                             if (!LyricsService.isSupportedPlayer(root.player)) return "";
                             if (LyricsService.lyricLines.length > 0) return LyricsService.nextLyricLine;
                             if (LyricsService.loading) return "Fetching lyrics…";
-                            return "No lyrics available";
+                            return "";
                         }
                     }
 

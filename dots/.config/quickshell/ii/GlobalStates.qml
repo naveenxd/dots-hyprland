@@ -11,6 +11,8 @@ Singleton {
     id: root
     property bool barOpen: true
     property real topBarMediaWidth: 440
+    property real topBarMediaX: 0
+    property Item topBarMediaItem: null
     property string randomQuote: "Everything happens for a reason"
     readonly property var quotesList: [
         "Everything happens for a reason",
