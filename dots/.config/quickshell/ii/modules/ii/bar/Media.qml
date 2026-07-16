@@ -37,6 +37,9 @@ Item {
     readonly property bool hasLyrics: root.isPlaying && LyricsService.currentLyricLine && LyricsService.currentLyricLine.length > 0
 
 
+    // Compact = narrow pill; wide = wider pill (naveenxd style)
+    readonly property bool isCompact: Config.options.bar.media.size === "compact"
+    implicitWidth: isCompact ? 300 : 520
     implicitHeight: Appearance.sizes.barHeight
 
     Timer {
@@ -86,9 +89,9 @@ Item {
                 anchors.bottomMargin: -12
                 layer.enabled: false
                 visible: opacity > 0
-                opacity: (root.isPlaying && !GlobalStates.mediaControlsOpen && root.visualizerPoints.length > 0) ? 1 : 0
+                opacity: (Config.options.bar.media.showVisualizer && root.isPlaying && !GlobalStates.mediaControlsOpen && root.visualizerPoints.length > 0) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
-                live: root.isPlaying && !GlobalStates.mediaControlsOpen
+                live: Config.options.bar.media.showVisualizer && root.isPlaying && !GlobalStates.mediaControlsOpen
                 points: root.visualizerPoints
                 maxVisualizerValue: 850
                 smoothing: 1
@@ -198,12 +201,12 @@ Item {
                 if (!root.hasMedia) {
                     return GlobalStates.randomQuote;
                 }
-                if (root.hasLyrics) {
+                if (Config.options.bar.media.showLyrics && root.hasLyrics) {
                     return LyricsService.currentLyricLine;
                 }
                 let artistStr = activePlayer?.trackArtist || "";
                 let baseInfo = `${cleanedTitle}${artistStr ? ' • ' + artistStr : ''}`;
-                if (LyricsService.isSupportedPlayer(activePlayer)) {
+                if (Config.options.bar.media.showLyrics && LyricsService.isSupportedPlayer(activePlayer)) {
                     if (LyricsService.loading) {
                         return `${baseInfo} • ${Translation.tr("Fetching lyrics…")}`;
                     }
@@ -259,7 +262,8 @@ Item {
 
         StyledText {
             id: trackTimeText
-            visible: root.hasMedia && (activePlayer?.length || 0) > 0
+            readonly property string timeDisplay: Config.options.bar.media.timeDisplay
+            visible: root.hasMedia && (activePlayer?.length || 0) > 0 && timeDisplay !== "off"
             Layout.alignment: Qt.AlignVCenter
             font.pixelSize: Appearance.font.pixelSize.small
             color: Appearance.colors.colOnLayer1
@@ -267,7 +271,9 @@ Item {
                 let pos = Math.max(0, activePlayer?.position || 0);
                 let len = Math.max(0, activePlayer?.length || 0);
                 let rem = Math.max(0, len - pos);
-                return `-${StringUtils.friendlyTimeForSeconds(rem)}`;
+                if (timeDisplay === "played") return StringUtils.friendlyTimeForSeconds(pos);
+                if (timeDisplay === "both") return `${StringUtils.friendlyTimeForSeconds(pos)}/${StringUtils.friendlyTimeForSeconds(len)}`;
+                return `-${StringUtils.friendlyTimeForSeconds(rem)}`; // "remaining" default
             }
         }
     }

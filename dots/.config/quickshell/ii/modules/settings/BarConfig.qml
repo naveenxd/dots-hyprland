@@ -32,6 +32,57 @@ ContentPage {
             }
         }
     }
+
+    ContentSection {
+        icon: "music_note"
+        title: Translation.tr("Media")
+
+        ConfigRow {
+            ContentSubsection {
+                title: Translation.tr("Pill size")
+                Layout.fillWidth: true
+                ConfigSelectionArray {
+                    currentValue: Config.options.bar.media.size
+                    onSelected: newValue => { Config.options.bar.media.size = newValue; }
+                    options: [
+                        { displayName: Translation.tr("Compact"), icon: "density_small", value: "compact" },
+                        { displayName: Translation.tr("Wide"),    icon: "density_large", value: "wide" }
+                    ]
+                }
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "graphic_eq"
+            text: Translation.tr("Show waveform visualizer")
+            checked: Config.options.bar.media.showVisualizer
+            onCheckedChanged: { Config.options.bar.media.showVisualizer = checked; }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "lyrics"
+            text: Translation.tr("Show lyrics in bar")
+            checked: Config.options.bar.media.showLyrics
+            onCheckedChanged: { Config.options.bar.media.showLyrics = checked; }
+        }
+
+        ConfigRow {
+            ContentSubsection {
+                title: Translation.tr("Time display")
+                Layout.fillWidth: true
+                ConfigSelectionArray {
+                    currentValue: Config.options.bar.media.timeDisplay
+                    onSelected: newValue => { Config.options.bar.media.timeDisplay = newValue; }
+                    options: [
+                        { displayName: Translation.tr("Off"),       icon: "timer_off",  value: "off" },
+                        { displayName: Translation.tr("Played"),    icon: "play_arrow", value: "played" },
+                        { displayName: Translation.tr("Remaining"), icon: "timer",      value: "remaining" },
+                        { displayName: Translation.tr("Both"),      icon: "more_time",  value: "both" }
+                    ]
+                }
+            }
+        }
+    }
     
     ContentSection {
         icon: "spoke"

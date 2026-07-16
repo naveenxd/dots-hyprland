@@ -280,6 +280,14 @@ Singleton {
                     }
                     property bool showBattery: true
                 }
+                property JsonObject media: JsonObject {
+                    property bool showVisualizer: true  // Waveform visualizer behind media pill
+                    property bool showLyrics: true      // Lyrics ticker in media pill
+                    // "compact" = thin bar pill | "wide" = wider pill (naveenxd style)
+                    property string size: "compact"
+                    // "off" | "played" | "remaining" | "both" (played/total)
+                    property string timeDisplay: "remaining"
+                }
                 property JsonObject tooltips: JsonObject {
                     property bool clickToShow: false
                 }
