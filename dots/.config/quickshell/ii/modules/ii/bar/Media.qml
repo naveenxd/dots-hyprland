@@ -52,14 +52,16 @@ Item {
     // Background pill
     Rectangle {
         id: bgContainer
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
         anchors.topMargin: 4
         anchors.bottomMargin: 4
+        width: root.isCompact ? Math.min(parent.width, 300) : parent.width
+        Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
         radius: Appearance.rounding.small
         color: Config.options?.bar.borderless ? "transparent" : (hoverArea.containsMouse ? Appearance.colors.colLayer1Hover : Appearance.colors.colLayer1)
-        
         border.width: 0
-
         Behavior on color { ColorAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
         // Clipped visualizer container matching pill border radius curve
@@ -137,7 +139,10 @@ Item {
     RowLayout {
         id: rowLayout
         spacing: 10
-        anchors.fill: parent
+        anchors.left: bgContainer.left
+        anchors.right: bgContainer.right
+        anchors.top: bgContainer.top
+        anchors.bottom: bgContainer.bottom
         anchors.leftMargin: 10
         anchors.rightMargin: 14
 
