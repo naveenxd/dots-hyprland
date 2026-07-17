@@ -141,21 +141,34 @@ Item {
                             active: pill.index > 0
                             visible: active
 
-                            sourceComponent: MouseArea {
+                            sourceComponent: AbstractButton {
                                 id: moveLeftBtn
 
                                 implicitWidth: 16
                                 implicitHeight: 16
-                                cursorShape: Qt.PointingHandCursor
                                 hoverEnabled: true
+                                focusPolicy: Qt.TabFocus
                                 onClicked: root.moveWidget(pill.index, -1)
+                                Accessible.name: Translation.tr("Move Left")
+                                Accessible.role: Accessible.Button
+
+                                PointingHandInteraction {
+                                }
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: height / 2
+                                    color: moveLeftBtn.hovered || moveLeftBtn.visualFocus ? ColorUtils.applyAlpha(Appearance.colors.colOnSecondaryContainer, 0.1) : "transparent"
+                                    border.width: moveLeftBtn.visualFocus ? 1 : 0
+                                    border.color: Appearance.colors.colOnSecondaryContainer
+                                }
 
                                 MaterialSymbol {
                                     anchors.centerIn: parent
                                     text: "chevron_left"
                                     iconSize: Appearance.font.pixelSize.small
                                     color: Appearance.colors.colOnSecondaryContainer
-                                    opacity: moveLeftBtn.containsMouse ? 1 : 0.6
+                                    opacity: moveLeftBtn.hovered || moveLeftBtn.visualFocus ? 1 : 0.6
                                 }
 
                             }
@@ -182,21 +195,34 @@ Item {
                             active: pill.index < root.widgetList.length - 1
                             visible: active
 
-                            sourceComponent: MouseArea {
+                            sourceComponent: AbstractButton {
                                 id: moveRightBtn
 
                                 implicitWidth: 16
                                 implicitHeight: 16
-                                cursorShape: Qt.PointingHandCursor
                                 hoverEnabled: true
+                                focusPolicy: Qt.TabFocus
                                 onClicked: root.moveWidget(pill.index, 1)
+                                Accessible.name: Translation.tr("Move Right")
+                                Accessible.role: Accessible.Button
+
+                                PointingHandInteraction {
+                                }
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: height / 2
+                                    color: moveRightBtn.hovered || moveRightBtn.visualFocus ? ColorUtils.applyAlpha(Appearance.colors.colOnSecondaryContainer, 0.1) : "transparent"
+                                    border.width: moveRightBtn.visualFocus ? 1 : 0
+                                    border.color: Appearance.colors.colOnSecondaryContainer
+                                }
 
                                 MaterialSymbol {
                                     anchors.centerIn: parent
                                     text: "chevron_right"
                                     iconSize: Appearance.font.pixelSize.small
                                     color: Appearance.colors.colOnSecondaryContainer
-                                    opacity: moveRightBtn.containsMouse ? 1 : 0.6
+                                    opacity: moveRightBtn.hovered || moveRightBtn.visualFocus ? 1 : 0.6
                                 }
 
                             }
@@ -204,19 +230,26 @@ Item {
                         }
 
                         // Remove button
-                        MouseArea {
+                        AbstractButton {
                             id: removeBtn
 
                             implicitWidth: 18
                             implicitHeight: 18
-                            cursorShape: Qt.PointingHandCursor
                             hoverEnabled: true
+                            focusPolicy: Qt.TabFocus
                             onClicked: root.removeWidget(pill.index)
+                            Accessible.name: Translation.tr("Remove")
+                            Accessible.role: Accessible.Button
+
+                            PointingHandInteraction {
+                            }
 
                             Rectangle {
                                 anchors.fill: parent
                                 radius: height / 2
-                                color: removeBtn.containsMouse ? ColorUtils.applyAlpha(Appearance.colors.colOnSecondaryContainer, 0.1) : "transparent"
+                                color: removeBtn.hovered || removeBtn.visualFocus ? ColorUtils.applyAlpha(Appearance.colors.colOnSecondaryContainer, 0.1) : "transparent"
+                                border.width: removeBtn.visualFocus ? 1 : 0
+                                border.color: Appearance.colors.colOnSecondaryContainer
                             }
 
                             MaterialSymbol {
