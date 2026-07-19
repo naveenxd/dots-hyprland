@@ -1,0 +1,235 @@
+From 06df0a21842015b3ef27e52ab724579830ac75b8 Mon Sep 17 00:00:00 2001
+From: Satoxyan <ayangsatya321@gmail.com>
+Date: Thu, 4 Jun 2026 19:59:49 +0700
+Subject: [PATCH 1/3] lock: add media control
+
+---
+ .../ii/modules/ii/lock/LockSurface.qml        | 20 +++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml b/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml
+index 4eb709c062..09763af2d6 100644
+--- a/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml
++++ b/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml
+@@ -11,6 +11,7 @@ import qs.modules.common.panels.lock
+ import qs.modules.ii.bar as Bar
+ import Quickshell
+ import Quickshell.Services.SystemTray
++import qs.modules.ii.mediaControls
+ 
+ MouseArea {
+     id: root
+@@ -96,6 +97,25 @@ MouseArea {
+     //     }
+     // }
+ 
++    Loader {
++        id: lockscreenMediaController
++        active: MprisController.activePlayer !== null && MprisController.activePlayer.trackTitle
++        visible: active
++        scale: root.toolbarScale
++        opacity: root.toolbarOpacity
++        anchors {
++            horizontalCenter: parent.horizontalCenter
++            bottom: mainIsland.top
++            bottomMargin: 15
++        }
++        sourceComponent: PlayerControl {
++            player: MprisController.activePlayer
++            implicitWidth: Appearance.sizes.mediaControlsWidth
++            implicitHeight: Appearance.sizes.mediaControlsHeight
++            radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
++        }
++    }
++    
+     // Main toolbar: password box
+     Toolbar {
+         id: mainIsland
+
+From fcced6824ac8182b2aeb26e73c5bdaa51709859f Mon Sep 17 00:00:00 2001
+From: Satoxyan <ayangsatya321@gmail.com>
+Date: Wed, 10 Jun 2026 15:00:16 +0700
+Subject: [PATCH 2/3] lock(fix): cava not showing in media player
+
+---
+ .../ii/modules/ii/lock/LockSurface.qml        | 20 +++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml b/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml
+index 09763af2d6..ba44a03c52 100644
+--- a/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml
++++ b/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml
+@@ -10,6 +10,7 @@ import qs.modules.common.functions
+ import qs.modules.common.panels.lock
+ import qs.modules.ii.bar as Bar
+ import Quickshell
++import Quickshell.Io
+ import Quickshell.Services.SystemTray
+ import qs.modules.ii.mediaControls
+ 
+@@ -19,6 +20,24 @@ MouseArea {
+     property bool active: false
+     property bool showInputField: active || context.currentText.length > 0
+     readonly property bool requirePasswordToPower: Config.options.lock.security.requirePasswordToPower
++    property list<real> visualizerPoints: []
++
++    // Visualizer data for media controls
++    Process {
++        id: cavaProc
++        running: lockscreenMediaController.active
++        onRunningChanged: {
++            if (!cavaProc.running)
++                root.visualizerPoints = [];
++        }
++        command: ["cava", "-p", `${FileUtils.trimFileProtocol(Directories.scriptPath)}/cava/raw_output_config.txt`]
++        stdout: SplitParser {
++            onRead: data => {
++                let points = data.split(";").map(p => parseFloat(p.trim())).filter(p => !isNaN(p));
++                root.visualizerPoints = points;
++            }
++        }
++    }
+ 
+     // Force focus on entry
+     function forceFieldFocus() {
+@@ -110,6 +129,7 @@ MouseArea {
+         }
+         sourceComponent: PlayerControl {
+             player: MprisController.activePlayer
++            visualizerPoints: root.visualizerPoints
+             implicitWidth: Appearance.sizes.mediaControlsWidth
+             implicitHeight: Appearance.sizes.mediaControlsHeight
+             radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
+
+From 0d009df92d032e9bfff78535eddec9bc7f55aa59 Mon Sep 17 00:00:00 2001
+From: Satoxyan <ayangsatya321@gmail.com>
+Date: Thu, 11 Jun 2026 09:24:38 +0700
+Subject: [PATCH 3/3] lock: add animation to mediaControl
+
+---
+ .../ii/modules/ii/lock/LockSurface.qml        | 96 +++++++++++++++++--
+ 1 file changed, 90 insertions(+), 6 deletions(-)
+
+diff --git a/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml b/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml
+index ba44a03c52..d2310798d2 100644
+--- a/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml
++++ b/dots/.config/quickshell/ii/modules/ii/lock/LockSurface.qml
+@@ -20,12 +20,35 @@ MouseArea {
+     property bool active: false
+     property bool showInputField: active || context.currentText.length > 0
+     readonly property bool requirePasswordToPower: Config.options.lock.security.requirePasswordToPower
++
++    // Whether a player with a title is currently active
++    readonly property bool mediaPlayerAvailable: MprisController.activePlayer !== null && MprisController.activePlayer.trackTitle
++
++    // Gate that keeps the Loader alive during exit animation.
++    // Set to true when player appears, set to false only after exit anim finishes.
++    property bool mediaLoaderActive: false
++
++    onMediaPlayerAvailableChanged: {
++        if (mediaPlayerAvailable) {
++            // Player appeared: activate loader (entry anim fires via onLoaded)
++            mediaLoaderActive = true
++        } else {
++            // Player disappeared: run exit anim, deactivate loader when done
++            if (lockscreenMediaController.item) {
++                entryAnim.stop()
++                mediaExitAnim.restart()
++            } else {
++                mediaLoaderActive = false
++            }
++        }
++    }
++
++    // Visualizer data for lockscreen media controls
+     property list<real> visualizerPoints: []
+ 
+-    // Visualizer data for media controls
+     Process {
+         id: cavaProc
+-        running: lockscreenMediaController.active
++        running: root.mediaLoaderActive && root.mediaPlayerAvailable
+         onRunningChanged: {
+             if (!cavaProc.running)
+                 root.visualizerPoints = [];
+@@ -118,15 +141,76 @@ MouseArea {
+ 
+     Loader {
+         id: lockscreenMediaController
+-        active: MprisController.activePlayer !== null && MprisController.activePlayer.trackTitle
+-        visible: active
+-        scale: root.toolbarScale
+-        opacity: root.toolbarOpacity
++
++        // Controlled manually via mediaLoaderActive so exit anim can finish
++        // before the item is destroyed.
++        active: root.mediaLoaderActive
++
+         anchors {
+             horizontalCenter: parent.horizontalCenter
+             bottom: mainIsland.top
+             bottomMargin: 15
+         }
++
++        // Driven imperatively — no Behavior, so start values apply instantly.
++        property real mediaScale: 0.85
++        property real mediaOpacity: 0.0
++
++        scale: mediaScale * root.toolbarScale
++        opacity: mediaOpacity * root.toolbarOpacity
++
++        // Entry: fires after sourceComponent is fully instantiated.
++        onLoaded: {
++            mediaScale   = 0.85
++            mediaOpacity = 0.0
++            entryAnim.restart()
++        }
++
++        ParallelAnimation {
++            id: entryAnim
++            NumberAnimation {
++                target: lockscreenMediaController
++                property: "mediaScale"
++                to: 1.0
++                duration: Appearance.animation.elementMove.duration * 1.2
++                easing.type: Easing.OutBack
++                easing.overshoot: 1.2
++            }
++            NumberAnimation {
++                target: lockscreenMediaController
++                property: "mediaOpacity"
++                to: 1.0
++                duration: Appearance.animation.elementMoveFast.duration
++                easing.type: Easing.OutCubic
++            }
++        }
++
++        // Exit: deactivates loader when animation finishes.
++        SequentialAnimation {
++            id: mediaExitAnim
++            ParallelAnimation {
++                NumberAnimation {
++                    target: lockscreenMediaController
++                    property: "mediaScale"
++                    to: 0.85
++                    duration: Appearance.animation.elementMoveFast.duration
++                    easing.type: Easing.InBack
++                    easing.overshoot: 1.2
++                }
++                NumberAnimation {
++                    target: lockscreenMediaController
++                    property: "mediaOpacity"
++                    to: 0.0
++                    duration: Appearance.animation.elementMoveFast.duration
++                    easing.type: Easing.InCubic
++                }
++            }
++            // Only destroy the item after the animation has fully completed.
++            ScriptAction {
++                script: root.mediaLoaderActive = false
++            }
++        }
++
+         sourceComponent: PlayerControl {
+             player: MprisController.activePlayer
+             visualizerPoints: root.visualizerPoints
