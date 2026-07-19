@@ -292,7 +292,7 @@ ContentPage {
 
         ConfigSwitch {
             buttonIcon: "pace"
-            text: Translation.tr("Seconds")
+            text: Translation.tr("Show seconds in clock widgets")
             checked: Config.options.time.secondPrecision
             onCheckedChanged: {
                 Config.options.time.secondPrecision = checked;

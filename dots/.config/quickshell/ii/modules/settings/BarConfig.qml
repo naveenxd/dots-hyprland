@@ -62,6 +62,20 @@ ContentPage {
     }
 
     ContentSection {
+        icon: "schedule"
+        title: Translation.tr("Clock")
+
+        ConfigSwitch {
+            buttonIcon: "pace"
+            text: Translation.tr("Show seconds in time")
+            checked: Config.options.bar.showSeconds
+            onCheckedChanged: {
+                Config.options.bar.showSeconds = checked;
+            }
+        }
+    }
+
+    ContentSection {
         icon: "view_column"
         title: Translation.tr("Widget Layout")
 
