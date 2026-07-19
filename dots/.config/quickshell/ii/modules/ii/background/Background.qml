@@ -17,10 +17,48 @@ import Quickshell.Hyprland
 import qs.modules.ii.background.widgets
 import qs.modules.ii.background.widgets.clock
 import qs.modules.ii.background.widgets.weather
+import qs.modules.ii.background.widgets.visualizer
 
-Variants {
+Scope {
     id: root
-    model: Quickshell.screens
+
+    property list<real> visualizerPoints: Array.from({length: 50}, () => 0)
+
+    // shut off cava when no monitor is showing the BG
+    readonly property bool anyMonitorShowingBackground: {
+        return Quickshell.screens.some(screen => {
+            const monitor = Hyprland.monitorFor(screen);
+            const workspaces = Hyprland.workspaces.values.filter(ws => ws.monitor && ws.monitor.name === monitor.name);
+            const activeWS = workspaces.find(ws => ws.active);
+            if (!activeWS) return true;
+
+            const hasFullscreen = activeWS.toplevels.values.some(win => win.wayland?.fullscreen);
+            return GlobalStates.screenLocked || !hasFullscreen || !Config?.options.background.hideWhenFullscreen;
+        });
+    }
+
+    // Cava process
+    Process {
+        id: cavaProc
+        running: (Config?.options?.background?.widgets?.visualizer?.enable ?? false) && root.anyMonitorShowingBackground
+        onRunningChanged: {
+            // Reset bars to zero when cava stops
+            if (!cavaProc.running)
+                root.visualizerPoints = Array.from({length: 50}, () => 0);
+        }
+        command: ["cava", "-p", `${CF.FileUtils.trimFileProtocol(Directories.scriptPath)}/cava/raw_output_config.txt`]
+        stdout: SplitParser {
+            onRead: data => {
+                const points = data.split(";").map(p => parseFloat(p.trim())).filter(p => !isNaN(p));
+                if (points.length > 0)
+                    root.visualizerPoints = points;
+            }
+        }
+    }
+
+    Variants {
+        id: screens
+        model: Quickshell.screens
 
     PanelWindow {
         id: bgRoot
@@ -226,6 +264,7 @@ Variants {
 
             WidgetCanvas {
                 id: widgetCanvas
+                z: 1
                 width: parent.width
                 height: parent.height
                 readonly property real parallaxFactor: {
@@ -275,6 +314,45 @@ Variants {
                         wallpaperScale: 1
                         wallpaperSafetyTriggered: bgRoot.wallpaperSafetyTriggered
                     }
+                }
+            }
+
+            FadeLoader {
+                id: visualizerLoader
+                z: 0
+
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    bottom: parent.bottom
+                }
+                height: Config.options.background.widgets.visualizer.height
+
+                readonly property var vizConfig: Config?.options?.background?.widgets?.visualizer
+                shown: vizConfig?.enable && (!GlobalStates.screenLocked || vizConfig?.showWhenLocked)
+
+                sourceComponent: VisualizerWidget {
+                    anchors.fill: parent
+
+                    // Bar data
+                    points: root.visualizerPoints
+                    primaryColor: Appearance.colors.colPrimary
+
+                    targetHeight: visualizerLoader.vizConfig?.height ?? 200
+                    targetBarWidth: visualizerLoader.vizConfig?.targetBarWidth ?? 50
+                    barSpacing: visualizerLoader.vizConfig?.barSpacing ?? 5
+                    barRounding: visualizerLoader.vizConfig?.barRounding ?? 0.4
+                    smoothing: visualizerLoader.vizConfig?.smoothing ?? 1.0
+                    visualOpacity: visualizerLoader.vizConfig?.opacity ?? 1.0
+                    isMono: visualizerLoader.vizConfig?.mono ?? true
+                    shown: visualizerLoader.shown
+
+                    // Screen metrics for this monitor
+                    screenWidth: bgRoot.screen.width
+                    screenHeight: bgRoot.screen.height
+                    scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
+                    scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
+                    wallpaperScale: bgRoot.effectiveWallpaperScale
                 }
             }
         }
