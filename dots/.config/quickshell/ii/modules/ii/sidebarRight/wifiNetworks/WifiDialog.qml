@@ -16,9 +16,15 @@ WindowDialog {
         Layout.leftMargin: 4
         Layout.rightMargin: 4
 
+        Item {
+            implicitWidth: 36
+            implicitHeight: 1
+        }
+
         WindowDialogTitle {
             Layout.fillWidth: true
             text: Translation.tr("Connect to Wi-Fi")
+            horizontalAlignment: Text.AlignHCenter
         }
 
         DialogButton {
@@ -56,7 +62,7 @@ WindowDialog {
     }
     StyledIndeterminateProgressBar {
         visible: Network.wifiScanning
-        Layout.fillWidth: true
+        anchors.horizontalCenter: parent.horizontalCenter
         Layout.topMargin: -8
         Layout.bottomMargin: -8
         Layout.leftMargin: -Appearance.rounding.large
@@ -82,8 +88,8 @@ WindowDialog {
             width: ListView.view.width
         }
     }
-    WindowDialogSeparator {}
     WindowDialogButtonRow {
+        Layout.margins: 4
         DialogButton {
             buttonText: Translation.tr("Details")
             onClicked: {
@@ -99,6 +105,9 @@ WindowDialog {
         DialogButton {
             buttonText: Translation.tr("Done")
             onClicked: root.dismiss()
+            colBackground: Appearance.colors.colPrimary
+            colText: Appearance.colors.colOnPrimary
+            colBackgroundHover: Appearance.colors.colPrimaryHover
         }
     }
 }
