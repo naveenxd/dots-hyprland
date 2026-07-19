@@ -341,25 +341,12 @@ Scope {
                 sourceComponent: VisualizerWidget {
                     anchors.fill: parent
 
-                    // Bar data
                     points: root.visualizerPoints
                     primaryColor: Appearance.colors.colPrimary
-
-                    targetHeight: visualizerLoader.vizConfig?.height ?? 200
-                    targetBarWidth: visualizerLoader.vizConfig?.targetBarWidth ?? 50
-                    barSpacing: visualizerLoader.vizConfig?.barSpacing ?? 5
-                    barRounding: visualizerLoader.vizConfig?.barRounding ?? 0.4
-                    smoothing: visualizerLoader.vizConfig?.smoothing ?? 1.0
-                    visualOpacity: visualizerLoader.vizConfig?.opacity ?? 1.0
-                    isMono: visualizerLoader.vizConfig?.mono ?? true
                     shown: visualizerLoader.shown
 
-                    // Screen metrics for this monitor
-                    screenWidth: bgRoot.screen.width
-                    screenHeight: bgRoot.screen.height
                     scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
                     scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
-                    wallpaperScale: bgRoot.effectiveWallpaperScale
                 }
             }
         }
