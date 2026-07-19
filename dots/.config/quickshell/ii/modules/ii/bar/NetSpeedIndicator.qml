@@ -10,11 +10,12 @@ import qs.modules.common.widgets
 
 // ─────────────────────────────────────────────────────────────
 // NetSpeedIndicator
-// Reads /proc/net/dev every second.
-// Click to cycle:
-//   mode 0 → live speeds       ↓ 2.3KB/s  ↑ 0.8MB/s
-//   mode 1 → session totals    ↓ 234MB    ↑ 12MB
-//   mode 2 → both              ↓ 234MB · 2.3KB/s  ↑ 12MB · 0.8MB/s
+// Mode 0: Live Speed (from /proc/net/dev, updates every 1s)
+// Mode 1: Today's Totals (from vnstat, updates every 10s)
+// Mode 2: Both Combined
+//
+// Left Click: Refresh daily stats and toggle/open the popup.
+// Right Click: Cycle display modes (0 -> 1 -> 2).
 // ─────────────────────────────────────────────────────────────
 Item {
     id: root
@@ -27,16 +28,18 @@ Item {
     property string iface: "wlan0"
 
     // ── State ───────────────────────────────────────────────
-    property int mode: 0          // 0 = live | 1 = totals | 2 = both
+    property int mode: 0          // 0 = live | 1 = today's totals | 2 = both
 
     property real rxBps: 0
     property real txBps: 0
-    property real sessionRx: 0
-    property real sessionTx: 0
-
     property real _prevRx: -1
     property real _prevTx: -1
     property real _prevTime: 0
+
+    property string downloadToday: "-"
+    property string uploadToday: "-"
+    property string totalToday: "-"
+    property string avgSpeedToday: "-"
 
     // ── Formatters ───────────────────────────────────────────
     function fmtSpeed(bps) {
@@ -46,40 +49,29 @@ Item {
         return                         (bps / 1073741824).toFixed(2) + " GB/s"
     }
 
-    function fmtTotal(b) {
-        if (b < 1024)           return b.toFixed(0)         + "B"
-        if (b < 1048576)        return (b / 1024).toFixed(1)    + "KB"
-        if (b < 1073741824)     return (b / 1048576).toFixed(1) + "MB"
-        return                         (b / 1073741824).toFixed(2) + "GB"
-    }
-
     function rxText() {
-        if (mode === 1) return fmtTotal(sessionRx)
-        if (mode === 2) return fmtTotal(sessionRx) + "·" + fmtSpeed(rxBps)
-        return fmtSpeed(rxBps)
+        if (root.mode === 1) return root.downloadToday
+        if (root.mode === 2) return root.downloadToday + " · " + fmtSpeed(root.rxBps)
+        return fmtSpeed(root.rxBps)
     }
 
-    // Fixed a potential typo where txText was returning sessionRx instead of sessionTx
     function txText() {
-        if (mode === 1) return fmtTotal(sessionTx)
-        if (mode === 2) return fmtTotal(sessionTx) + "·" + fmtSpeed(txBps)
-        return fmtSpeed(txBps)
+        if (root.mode === 1) return root.uploadToday
+        if (root.mode === 2) return root.uploadToday + " · " + fmtSpeed(root.txBps)
+        return fmtSpeed(root.txBps)
     }
 
-    // ── /proc/net/dev reader ─────────────────────────────────
+    // ── /proc/net/dev reader (Live Speed) ───────────────────
     Process {
         id: netProc
         command: ["cat", "/proc/net/dev"]
         running: false
 
         stdout: SplitParser {
-            // default splitMarker="\n" → onRead gets one line at a time
             onRead: line => {
                 var l = line.trim()
                 if (!l.startsWith(root.iface + ":")) return
 
-                // columns after "iface:":
-                // [0] rx_bytes  [1] rx_pkts ... [8] tx_bytes
                 var parts = l.slice(l.indexOf(":") + 1).trim().split(/\s+/)
                 if (parts.length < 9) return
 
@@ -92,10 +84,8 @@ Item {
                     if (dt > 0.01) {
                         var drx = Math.max(0, rx - root._prevRx)
                         var dtx = Math.max(0, tx - root._prevTx)
-                        root.rxBps      = drx / dt
-                        root.txBps      = dtx / dt
-                        root.sessionRx += drx
-                        root.sessionTx += dtx
+                        root.rxBps = drx / dt
+                        root.txBps = dtx / dt
                     }
                 }
 
@@ -107,9 +97,9 @@ Item {
     }
 
     Timer {
-        id: sampleTimer
+        id: liveTimer
         interval: 1000
-        running: true
+        running: root.mode === 0 || root.mode === 2 // Only run when live speeds are visible
         repeat: true
         triggeredOnStart: true
         onTriggered: {
@@ -118,12 +108,53 @@ Item {
         }
     }
 
+    // ── vnstat reader (Daily Totals) ────────────────────────
+    Process {
+        id: vnstatProc
+        command: ["vnstat", "-i", root.iface, "--oneline"]
+        running: false
+
+        stdout: SplitParser {
+            onRead: line => {
+                var parts = line.trim().split(";")
+                if (parts.length >= 7) {
+                    root.downloadToday = parts[3].trim()
+                    root.uploadToday = parts[4].trim()
+                    root.totalToday = parts[5].trim()
+                    root.avgSpeedToday = parts[6].trim()
+                }
+            }
+        }
+    }
+
+    Timer {
+        id: dailyTimer
+        interval: 10000 // Refresh vnstat every 10 seconds
+        running: true
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: {
+            if (!vnstatProc.running)
+                vnstatProc.running = true
+        }
+    }
+
     // ── Interaction ──────────────────────────────────────────
     MouseArea {
+        id: mouseArea
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
-        hoverEnabled: true
-        onClicked: root.mode = (root.mode + 1) % 3
+        hoverEnabled: !Config.options.bar.tooltips.clickToShow
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+        onClicked: event => {
+            if (event.button === Qt.RightButton) {
+                root.mode = (root.mode + 1) % 3;
+            } else if (event.button === Qt.LeftButton) {
+                if (!vnstatProc.running)
+                    vnstatProc.running = true;
+            }
+        }
 
         // Subtle hover highlight (same pattern as rest of bar)
         Rectangle {
@@ -159,10 +190,6 @@ Item {
                     font.pixelSize: Appearance.font.pixelSize.small
                     font.family: Appearance.font.family.mono
                     color: Appearance.colors.colOnLayer0
-
-                    Behavior on text {
-                        // instant swap keeps it snappy — remove if you want no animation
-                    }
                 }
             }
 
@@ -193,5 +220,14 @@ Item {
                 }
             }
         }
+    }
+
+    // ── Popup ───────────────────────────────────────────────
+    NetSpeedPopup {
+        hoverTarget: mouseArea
+        downloadToday: root.downloadToday
+        uploadToday: root.uploadToday
+        totalToday: root.totalToday
+        avgSpeedToday: root.avgSpeedToday
     }
 }

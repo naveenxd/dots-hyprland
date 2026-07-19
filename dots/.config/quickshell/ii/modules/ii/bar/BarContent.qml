@@ -21,6 +21,7 @@ Item { // Bar content region
     Component { id: compBatteryIndicator; BatteryIndicator { Layout.alignment: Qt.AlignVCenter; visible: (root.useShortenedForm < 2 && Battery.available) } }
     Component { id: compLyrics; Lyrics { Layout.alignment: Qt.AlignVCenter } }
     Component { id: compNetSpeedIndicator; NetSpeedIndicator { Layout.alignment: Qt.AlignVCenter } }
+    Component { id: compWeather; WeatherBar { visible: Config.options.bar.weather.enable; Layout.alignment: Qt.AlignVCenter } }
 
     // Lyrics fills width if present (to stretch in between title and workspaces),
     // otherwise activewindow stretches.
@@ -43,6 +44,7 @@ Item { // Bar content region
         if (n === "battery") return compBatteryIndicator;
         if (n === "lyrics") return compLyrics;
         if (n === "netspeed") return compNetSpeedIndicator;
+        if (n === "weather") return compWeather;
         return null;
     }
 
@@ -233,6 +235,23 @@ Item { // Bar content region
                 }
             }
         }
+
+        VerticalBarSeparator {
+            visible: Config.options?.bar.borderless && Config.options.bar.layout.right.split(",").filter(x => x.trim() !== "").length > 0
+        }
+
+        BarGroup {
+            id: rightGroup
+            anchors.verticalCenter: parent.verticalCenter
+            visible: Config.options.bar.layout.right.split(",").filter(x => x.trim() !== "").length > 0
+
+            Repeater {
+                model: Config.options.bar.layout.right.split(",").filter(x => x.trim() !== "")
+                Loader {
+                    sourceComponent: root.getComponent(modelData)
+                }
+            }
+        }
     }
 
     FocusedScrollMouseArea { // Right side | scroll to change volume
@@ -377,15 +396,7 @@ Item { // Bar content region
                 Layout.fillHeight: true
             }
 
-            // Weather
-            Loader {
-                Layout.leftMargin: 4
-                active: Config.options.bar.weather.enable
 
-                sourceComponent: BarGroup {
-                    WeatherBar {}
-                }
-            }
         }
     }
 }

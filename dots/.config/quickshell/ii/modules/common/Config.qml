@@ -293,7 +293,7 @@ Singleton {
                     property string centerLeft: "resources,media"
                     property string center: "workspaces"
                     property string centerRight: "clock,utils,battery"
-                    property string right: ""
+                    property string right: "weather"
                 }
             }
 

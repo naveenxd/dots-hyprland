@@ -131,9 +131,22 @@ ContentPage {
 
         }
 
+        ContentSubsection {
+            title: Translation.tr("Right widgets (e.g. weather)")
+
+            WidgetListEditor {
+                Layout.fillWidth: true
+                currentValue: Config.options.bar.layout.right
+                onValueChanged: (newValue) => {
+                    Config.options.bar.layout.right = newValue;
+                }
+            }
+
+        }
+
         StyledText {
             Layout.fillWidth: true
-            text: Translation.tr("Available widgets: activewindow, lyrics, media, resources, workspaces, clock, utils, battery, netspeed. Choose widgets to add or remove them from the bar layout.")
+            text: Translation.tr("Available widgets: activewindow, lyrics, media, resources, workspaces, clock, utils, battery, netspeed, weather. Choose widgets to add or remove them from the bar layout.")
             color: Appearance.colors.colOnLayer1
             font.pixelSize: Appearance.font.pixelSize.small
             wrapMode: Text.WordWrap

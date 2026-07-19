@@ -58,6 +58,10 @@ Item {
         "value": "netspeed",
         "displayName": Translation.tr("Net Speed"),
         "icon": "speed"
+    }, {
+        "value": "weather",
+        "displayName": Translation.tr("Weather"),
+        "icon": "cloud"
     }]
 
     signal valueChanged(string newValue)
