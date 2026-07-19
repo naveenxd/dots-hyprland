@@ -20,6 +20,7 @@ Item { // Bar content region
     Component { id: compUtilButtons; UtilButtons { Layout.alignment: Qt.AlignVCenter; visible: (Config.options.bar.verbose && root.useShortenedForm === 0) } }
     Component { id: compBatteryIndicator; BatteryIndicator { Layout.alignment: Qt.AlignVCenter; visible: (root.useShortenedForm < 2 && Battery.available) } }
     Component { id: compLyrics; Lyrics { Layout.alignment: Qt.AlignVCenter } }
+    Component { id: compNetSpeedIndicator; NetSpeedIndicator { Layout.alignment: Qt.AlignVCenter } }
 
     // Lyrics fills width if present (to stretch in between title and workspaces),
     // otherwise activewindow stretches.
@@ -41,6 +42,7 @@ Item { // Bar content region
         if (n === "utils") return compUtilButtons;
         if (n === "battery") return compBatteryIndicator;
         if (n === "lyrics") return compLyrics;
+        if (n === "netspeed") return compNetSpeedIndicator;
         return null;
     }
 

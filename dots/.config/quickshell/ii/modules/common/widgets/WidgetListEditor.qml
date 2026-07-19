@@ -54,6 +54,10 @@ Item {
         "value": "battery",
         "displayName": Translation.tr("Battery"),
         "icon": "battery_charging_full"
+    }, {
+        "value": "netspeed",
+        "displayName": Translation.tr("Net Speed"),
+        "icon": "speed"
     }]
 
     signal valueChanged(string newValue)
