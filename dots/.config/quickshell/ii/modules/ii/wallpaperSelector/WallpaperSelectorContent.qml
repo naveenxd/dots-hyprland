@@ -9,12 +9,46 @@ import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 
 MouseArea {
     id: root
     property int columns: 4
     property real previewCellAspectRatio: 4 / 3
     property bool useDarkMode: Appearance.m3colors.darkmode
+
+    property var monitorNameList: (HyprlandData.monitors || []).map(m => m.name)
+    property string selectedMonitor: ""
+
+    // Update monitor selection when multiMonitor mode or focused monitor changes
+    Connections {
+        target: Config.options.background.multiMonitor
+        function onEnableChanged() {
+            root.updateMonitorSelection()
+        }
+    }
+
+    Connections {
+        target: Hyprland
+        function onFocusedMonitorChanged() {
+            root.updateMonitorSelection()
+        }
+    }
+
+    Component.onCompleted: {
+        root.updateMonitorSelection()
+    }
+
+    function updateMonitorSelection() {
+        if (Config.options.background.multiMonitor.enable) {
+            const focusedMonitor = Hyprland.focusedMonitor?.name
+            if (focusedMonitor && monitorNameList && monitorNameList.includes(focusedMonitor)) {
+                selectedMonitor = focusedMonitor
+                return
+            }
+        }
+        selectedMonitor = ""
+    }
 
     function updateThumbnails() {
         const totalImageMargin = (Appearance.sizes.wallpaperSelectorItemMargins + Appearance.sizes.wallpaperSelectorItemPadding) * 2;
@@ -42,7 +76,7 @@ MouseArea {
 
     function selectWallpaperPath(filePath) {
         if (filePath && filePath.length > 0) {
-            Wallpapers.select(filePath, root.useDarkMode);
+            Wallpapers.select(filePath, root.useDarkMode, selectedMonitor);
             filterField.text = "";
         }
     }
