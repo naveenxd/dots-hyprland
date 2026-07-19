@@ -133,7 +133,7 @@ ContentPage {
 
         StyledText {
             Layout.fillWidth: true
-            text: Translation.tr("Available widgets: activewindow, lyrics, media, resources, workspaces, clock, utils, battery. Choose widgets to add or remove them from the bar layout.")
+            text: Translation.tr("Available widgets: activewindow, lyrics, media, resources, workspaces, clock, utils, battery, netspeed. Choose widgets to add or remove them from the bar layout.")
             color: Appearance.colors.colOnLayer1
             font.pixelSize: Appearance.font.pixelSize.small
             wrapMode: Text.WordWrap
