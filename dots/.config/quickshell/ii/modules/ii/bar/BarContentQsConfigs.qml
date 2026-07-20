@@ -12,17 +12,6 @@ import qs.modules.common.functions
 Item { // Bar content region
     id: root
 
-    readonly property string layoutLeft: Config.options?.bar?.layoutQsConfigs?.left ?? "media"
-    readonly property string layoutCenter: Config.options?.bar?.layoutQsConfigs?.center ?? "workspaces"
-    readonly property string layoutCenterRight: Config.options?.bar?.layoutQsConfigs?.centerRight ?? "clock,weather"
-    readonly property string layoutRight: Config.options?.bar?.layoutQsConfigs?.right ?? "utils,netspeed,resources"
-    readonly property string activeWidgetsStr: `${root.layoutLeft},${root.layoutCenter},${root.layoutCenterRight},${root.layoutRight}`.toLowerCase()
-
-    function isWidgetEnabled(widgetName) {
-        let items = root.activeWidgetsStr.split(",").map(x => x.trim());
-        return items.includes(widgetName.toLowerCase());
-    }
-
     property var screen: root.QsWindow.window?.screen
     property var brightnessMonitor: Brightness.getMonitorForScreen(screen)
     property real useShortenedForm: (Appearance.sizes.barHellaShortenScreenWidthThreshold >= screen?.width) ? 2 : (Appearance.sizes.barShortenScreenWidthThreshold >= screen?.width) ? 1 : 0
@@ -85,7 +74,6 @@ Item { // Bar content region
         }
 
         MediaQsConfigs {
-            visible: root.isWidgetEnabled("media")
             anchors.fill: parent
             anchors.leftMargin: Appearance.rounding.screenRounding
             anchors.rightMargin: 0
@@ -104,7 +92,6 @@ Item { // Bar content region
 
         BarGroup {
             id: middleCenterGroup
-            visible: root.isWidgetEnabled("workspaces")
             anchors.verticalCenter: parent.verticalCenter
             padding: workspacesWidget.widgetPadding
 
@@ -275,9 +262,51 @@ Item { // Bar content region
 
             Item { Layout.fillWidth: true; Layout.fillHeight: true }
 
-            // DateTime + Weather
+            // Network Speed (Speed Meter - rightmost before indicators)
+            BarGroup {
+                id: networkSpeedGroup
+                Layout.alignment: Qt.AlignVCenter
+
+                NetworkSpeedMeter {
+                    Layout.alignment: Qt.AlignVCenter
+                }
+            }
+
+            Item { Layout.fillWidth: true; Layout.fillHeight: true }
+
+            // Stats (Resources - middle)
+            BarGroup {
+                id: resourcesGroup
+                Layout.alignment: Qt.AlignVCenter
+
+                Resources {
+                    alwaysShowAllResources: true
+                }
+            }
+
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                visible: utilButtonsGroup.visible
+            }
+
+            // Utils (between clock and resources)
+            BarGroup {
+                id: utilButtonsGroup
+                Layout.alignment: Qt.AlignVCenter
+                visible: Config.options.bar.verbose && root.useShortenedForm === 0 && utilButtonsItem.implicitWidth > 8
+                Layout.preferredWidth: visible ? implicitWidth : 0
+
+                UtilButtons {
+                    id: utilButtonsItem
+                    Layout.alignment: Qt.AlignVCenter
+                }
+            }
+
+            Item { Layout.fillWidth: true; Layout.fillHeight: true }
+
+            // DateTime + Weather (Clock - leftmost next to workspaces)
             MouseArea {
-                visible: root.isWidgetEnabled("clock") || root.isWidgetEnabled("weather")
                 Layout.alignment: Qt.AlignVCenter
                 implicitWidth: clockGroupContent.implicitWidth + 8
                 implicitHeight: Appearance.sizes.baseBarHeight
@@ -298,15 +327,14 @@ Item { // Bar content region
                         id: clockRow
                         anchors.centerIn: parent
                         spacing: 0
-                        
+
                         ClockWidget {
-                            visible: root.isWidgetEnabled("clock")
                             showDate: (Config.options.bar.verbose && root.useShortenedForm < 2)
                             Layout.alignment: Qt.AlignVCenter
                         }
 
                         StyledText {
-                            visible: root.isWidgetEnabled("clock") && root.isWidgetEnabled("weather") && Config.options.bar.weather.enable
+                            visible: Config.options.bar.weather.enable
                             Layout.alignment: Qt.AlignVCenter
                             font.pixelSize: Appearance.font.pixelSize.small
                             color: Appearance.colors.colSubtext
@@ -314,7 +342,7 @@ Item { // Bar content region
                         }
 
                         Loader {
-                            active: root.isWidgetEnabled("weather") && Config.options.bar.weather.enable
+                            active: Config.options.bar.weather.enable
                             Layout.alignment: Qt.AlignVCenter
                             Layout.rightMargin: 4
                             sourceComponent: WeatherBar {}
@@ -322,53 +350,6 @@ Item { // Bar content region
                     }
                 }
             }
-
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                visible: utilButtonsGroup.visible
-            }
-
-            // Utils
-            BarGroup {
-                id: utilButtonsGroup
-                Layout.alignment: Qt.AlignVCenter
-                visible: root.isWidgetEnabled("utils") && Config.options.bar.verbose && root.useShortenedForm === 0 && utilButtonsItem.implicitWidth > 8
-                Layout.preferredWidth: visible ? implicitWidth : 0
-
-                UtilButtons {
-                    id: utilButtonsItem
-                    Layout.alignment: Qt.AlignVCenter
-                }
-            }
-
-            Item { Layout.fillWidth: true; Layout.fillHeight: true }
-
-            // Network Speed
-            BarGroup {
-                id: networkSpeedGroup
-                Layout.alignment: Qt.AlignVCenter
-                visible: root.isWidgetEnabled("netspeed")
-
-                NetworkSpeedMeter {
-                    Layout.alignment: Qt.AlignVCenter
-                }
-            }
-
-            Item { Layout.fillWidth: true; Layout.fillHeight: true }
-
-            // Stats (Resources)
-            BarGroup {
-                id: resourcesGroup
-                Layout.alignment: Qt.AlignVCenter
-                visible: root.isWidgetEnabled("resources")
-
-                Resources {
-                    alwaysShowAllResources: true
-                }
-            }
-
-            // Removed spacer to allow Resources to anchor to the left edge
         }
     }
 }

@@ -181,69 +181,20 @@ ContentPage {
             }
         }
 
-        // COMPACT (qs_configs) BAR LAYOUT EDITORS
+        // COMPACT (qs_configs) BAR LAYOUT NOTICE
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 12
             visible: (Config.options.bar.style === "qs_configs" || Config.options.bar.style === "compact")
 
-            ContentSubsection {
-                title: Translation.tr("Left section (e.g. media)")
-
-                WidgetListEditor {
-                    Layout.fillWidth: true
-                    currentValue: Config.options?.bar?.layoutQsConfigs?.left ?? "media"
-                    onValueChanged: (newValue) => {
-                        Config.setNestedValue("bar.layoutQsConfigs.left", newValue);
-                    }
-                }
-            }
-
-            ContentSubsection {
-                title: Translation.tr("Center section (e.g. workspaces)")
-
-                WidgetListEditor {
-                    Layout.fillWidth: true
-                    currentValue: Config.options?.bar?.layoutQsConfigs?.center ?? "workspaces"
-                    onValueChanged: (newValue) => {
-                        Config.setNestedValue("bar.layoutQsConfigs.center", newValue);
-                    }
-                }
-            }
-
-            ContentSubsection {
-                title: Translation.tr("Center-Right section (e.g. clock, weather)")
-
-                WidgetListEditor {
-                    Layout.fillWidth: true
-                    currentValue: Config.options?.bar?.layoutQsConfigs?.centerRight ?? "clock,weather"
-                    onValueChanged: (newValue) => {
-                        Config.setNestedValue("bar.layoutQsConfigs.centerRight", newValue);
-                    }
-                }
-            }
-
-            ContentSubsection {
-                title: Translation.tr("Right section (e.g. utils, netspeed, resources)")
-
-                WidgetListEditor {
-                    Layout.fillWidth: true
-                    currentValue: Config.options?.bar?.layoutQsConfigs?.right ?? "utils,netspeed,resources"
-                    onValueChanged: (newValue) => {
-                        Config.setNestedValue("bar.layoutQsConfigs.right", newValue);
-                    }
-                }
-            }
-
             StyledText {
                 Layout.fillWidth: true
-                text: Translation.tr("Available widgets: media, workspaces, clock, weather, utils, netspeed, resources. Choose widgets to toggle them in the compact bar.")
+                text: Translation.tr("The compact style features a dedicated, fixed layout with media, workspaces, resources, network speed, clock/weather, and system indicator controls.")
                 color: Appearance.colors.colOnLayer1
-                font.pixelSize: Appearance.font.pixelSize.small
+                font.pixelSize: Appearance.font.pixelSize.normal
                 wrapMode: Text.WordWrap
             }
         }
-
     }
 
     ContentSection {

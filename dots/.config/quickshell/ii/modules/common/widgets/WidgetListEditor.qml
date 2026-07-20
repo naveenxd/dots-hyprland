@@ -289,10 +289,11 @@ Item {
                 currentIndex: -1
                 model: root.availableWidgets
                 onActivated: (index) => {
-                    if (index >= 0 && index < model.length)
-                        root.addWidget(model[index].value);
-
-                    currentIndex = -1;
+                    let item = addCombo.model[index];
+                    if (item && item.value) {
+                        root.addWidget(item.value);
+                    }
+                    Qt.callLater(() => { addCombo.currentIndex = -1; });
                 }
             }
 
