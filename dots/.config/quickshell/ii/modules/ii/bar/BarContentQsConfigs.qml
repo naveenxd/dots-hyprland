@@ -262,12 +262,12 @@ Item { // Bar content region
 
             Item { Layout.fillWidth: true; Layout.fillHeight: true }
 
-            // Network Speed (Speed Meter - rightmost before indicators)
+            // Network Speed (NetSpeedIndicator - same as default style)
             BarGroup {
                 id: networkSpeedGroup
                 Layout.alignment: Qt.AlignVCenter
 
-                NetworkSpeedMeter {
+                NetSpeedIndicator {
                     Layout.alignment: Qt.AlignVCenter
                 }
             }
