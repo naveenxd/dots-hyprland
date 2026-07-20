@@ -237,11 +237,22 @@ Singleton {
         }
     }
 
+    function isPlaceholderTitle(title) {
+        if (!title) return true;
+        let t = title.trim().toLowerCase();
+        return t === "spotify"
+            || t === "spotify - search"
+            || t === "spotify free"
+            || t === "spotify premium"
+            || t === "spotify - advertisement"
+            || t === "advertisement";
+    }
+
     function isSupportedPlayer(player) {
         if (!player) return false;
         let id = (player.identity || "").toLowerCase();
         let entry = (player.desktopEntry || "").toLowerCase();
-        let bus = (player.dbusName || "").toLowerCase();
+        let bus = (player.busName || "").toLowerCase();
         let isSpotify = id.includes("spotify") || entry.includes("spotify") || bus.includes("spotify");
         let isAudacious = id.includes("audacious") || entry.includes("audacious") || bus.includes("audacious");
         return isSpotify || isAudacious;
@@ -250,6 +261,11 @@ Singleton {
     function syncTrackChange() {
         let newTitle = activePlayer?.trackTitle || "";
         let newArtist = activePlayer?.trackArtist || "";
+
+        if (root.isPlaceholderTitle(newTitle)) {
+            return;
+        }
+
         if (newTitle !== root.currentTrackName || newArtist !== root.currentArtistName) {
             root.currentTrackName = newTitle;
             root.currentArtistName = newArtist;

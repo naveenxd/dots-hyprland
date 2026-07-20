@@ -212,17 +212,23 @@ Item {
                 if (!root.hasMedia) {
                     return "Everything happens for a reason";
                 }
-                if (root.hasLyrics) {
+                let rawTitle = activePlayer?.trackTitle || "";
+                let rawArtist = activePlayer?.trackArtist || "";
+                let isPlaceholder = LyricsService.isPlaceholderTitle(rawTitle);
+
+                let displayTitle = isPlaceholder ? (StringUtils.cleanMusicTitle(LyricsService.currentTrackName) || cleanedTitle) : cleanedTitle;
+                let displayArtist = isPlaceholder ? (LyricsService.currentArtistName || rawArtist) : rawArtist;
+                let baseInfo = `${displayTitle}${displayArtist ? ' • ' + displayArtist : ''}`;
+
+                if (LyricsService.currentLyricLine && LyricsService.currentLyricLine.length > 0) {
                     return LyricsService.currentLyricLine;
                 }
-                let artistStr = activePlayer?.trackArtist || "";
-                let baseInfo = `${cleanedTitle}${artistStr ? ' • ' + artistStr : ''}`;
                 if (LyricsService.isSupportedPlayer(activePlayer)) {
                     if (LyricsService.loading) {
                         return `${baseInfo} • ${LyricsService.loadingStatus}`;
                     }
                     if (LyricsService.lyricLines.length === 0) {
-                        return LyricsService.hasUnsyncedLyrics ? `${baseInfo} • Unsynced lyrics` : `${baseInfo} • No lyrics`;
+                        return LyricsService.hasUnsyncedLyrics ? `${baseInfo} • Unsynced lyrics` : baseInfo;
                     }
                 }
                 return baseInfo;
