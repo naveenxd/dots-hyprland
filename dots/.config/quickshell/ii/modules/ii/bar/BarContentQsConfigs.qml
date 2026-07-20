@@ -12,14 +12,14 @@ import qs.modules.common.functions
 Item { // Bar content region
     id: root
 
+    readonly property string layoutLeft: Config.options?.bar?.layoutQsConfigs?.left ?? "media"
+    readonly property string layoutCenter: Config.options?.bar?.layoutQsConfigs?.center ?? "workspaces"
+    readonly property string layoutCenterRight: Config.options?.bar?.layoutQsConfigs?.centerRight ?? "clock,weather"
+    readonly property string layoutRight: Config.options?.bar?.layoutQsConfigs?.right ?? "utils,netspeed,resources"
+    readonly property string activeWidgetsStr: `${root.layoutLeft},${root.layoutCenter},${root.layoutCenterRight},${root.layoutRight}`.toLowerCase()
+
     function isWidgetEnabled(widgetName) {
-        let layout = Config.options?.bar?.layoutQsConfigs;
-        let leftStr = layout?.left ?? "media";
-        let centerStr = layout?.center ?? "workspaces";
-        let centerRightStr = layout?.centerRight ?? "clock,weather";
-        let rightStr = layout?.right ?? "utils,netspeed,resources";
-        let str = (leftStr + "," + centerStr + "," + centerRightStr + "," + rightStr).toLowerCase();
-        let items = str.split(",").map(x => x.trim());
+        let items = root.activeWidgetsStr.split(",").map(x => x.trim());
         return items.includes(widgetName.toLowerCase());
     }
 

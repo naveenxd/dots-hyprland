@@ -194,10 +194,7 @@ ContentPage {
                     Layout.fillWidth: true
                     currentValue: Config.options?.bar?.layoutQsConfigs?.left ?? "media"
                     onValueChanged: (newValue) => {
-                        if (!Config.options.bar.layoutQsConfigs) {
-                            Config.options.bar.layoutQsConfigs = { left: "media", center: "workspaces", centerRight: "clock,weather", right: "utils,netspeed,resources" };
-                        }
-                        Config.options.bar.layoutQsConfigs.left = newValue;
+                        Config.setNestedValue("bar.layoutQsConfigs.left", newValue);
                     }
                 }
             }
@@ -209,10 +206,7 @@ ContentPage {
                     Layout.fillWidth: true
                     currentValue: Config.options?.bar?.layoutQsConfigs?.center ?? "workspaces"
                     onValueChanged: (newValue) => {
-                        if (!Config.options.bar.layoutQsConfigs) {
-                            Config.options.bar.layoutQsConfigs = { left: "media", center: "workspaces", centerRight: "clock,weather", right: "utils,netspeed,resources" };
-                        }
-                        Config.options.bar.layoutQsConfigs.center = newValue;
+                        Config.setNestedValue("bar.layoutQsConfigs.center", newValue);
                     }
                 }
             }
@@ -224,10 +218,7 @@ ContentPage {
                     Layout.fillWidth: true
                     currentValue: Config.options?.bar?.layoutQsConfigs?.centerRight ?? "clock,weather"
                     onValueChanged: (newValue) => {
-                        if (!Config.options.bar.layoutQsConfigs) {
-                            Config.options.bar.layoutQsConfigs = { left: "media", center: "workspaces", centerRight: "clock,weather", right: "utils,netspeed,resources" };
-                        }
-                        Config.options.bar.layoutQsConfigs.centerRight = newValue;
+                        Config.setNestedValue("bar.layoutQsConfigs.centerRight", newValue);
                     }
                 }
             }
@@ -239,10 +230,7 @@ ContentPage {
                     Layout.fillWidth: true
                     currentValue: Config.options?.bar?.layoutQsConfigs?.right ?? "utils,netspeed,resources"
                     onValueChanged: (newValue) => {
-                        if (!Config.options.bar.layoutQsConfigs) {
-                            Config.options.bar.layoutQsConfigs = { left: "media", center: "workspaces", centerRight: "clock,weather", right: "utils,netspeed,resources" };
-                        }
-                        Config.options.bar.layoutQsConfigs.right = newValue;
+                        Config.setNestedValue("bar.layoutQsConfigs.right", newValue);
                     }
                 }
             }
