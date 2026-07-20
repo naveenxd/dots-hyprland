@@ -63,16 +63,17 @@ Item { // Player instance
     property string displayedArtFilePath: root.downloaded ? Qt.resolvedUrl(artFilePath) : ""
 
     component TrackChangeButton: RippleButton {
-        implicitWidth: 24
-        implicitHeight: 24
+        implicitWidth: 32
+        implicitHeight: 32
 
         property var iconName
-        colBackground: ColorUtils.transparentize(blendedColors.colSecondaryContainer, 1)
+        buttonRadius: 16
+        colBackground: ColorUtils.applyAlpha(blendedColors.colSecondaryContainer, 0.6)
         colBackgroundHover: blendedColors.colSecondaryContainerHover
         colRipple: blendedColors.colSecondaryContainerActive
 
         contentItem: MaterialSymbol {
-            iconSize: Appearance.font.pixelSize.huge
+            iconSize: 20
             fill: 1
             horizontalAlignment: Text.AlignHCenter
             color: blendedColors.colOnSecondaryContainer
@@ -128,15 +129,40 @@ Item { // Player instance
         color: artDominantColor
     }
 
+    // Outer Ambient Color Glow Aura
+    Rectangle {
+        id: ambientGlow
+        anchors.centerIn: parent
+        width: parent.width - 16
+        height: parent.height - 16
+        radius: root.radius + 8
+        color: blendedColors.colPrimary
+        opacity: root.player?.isPlaying ? 0.30 : 0.12
+        scale: root.player?.isPlaying ? 1.03 : 0.98
+
+        Behavior on opacity { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } }
+        Behavior on scale { NumberAnimation { duration: 600; easing.type: Easing.OutBack } }
+
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            blurEnabled: true
+            blurMax: 28
+            blur: 1.0
+        }
+    }
+
     StyledRectangularShadow {
         target: background
     }
-    Rectangle { // Background
+
+    Rectangle { // Main Glassmorphic Container
         id: background
         anchors.fill: parent
         anchors.margins: Appearance.sizes.elevationMargin
-        color: ColorUtils.applyAlpha(blendedColors.colLayer0, 1)
+        color: ColorUtils.applyAlpha(blendedColors.colLayer0, 0.82)
         radius: root.radius
+        border.width: 1
+        border.color: ColorUtils.applyAlpha(blendedColors.colOnLayer0, 0.14)
 
         layer.enabled: true
         layer.effect: OpacityMask {
@@ -147,6 +173,7 @@ Item { // Player instance
             }
         }
 
+        // Blurred Artwork Background with Subtle Gradient Vignette
         StyledImage {
             id: blurredArt
             anchors.fill: parent
@@ -155,6 +182,7 @@ Item { // Player instance
             cache: false
             antialiasing: true
             asynchronous: true
+            opacity: 0.35
 
             layer.enabled: true
             layer.effect: StyledBlurEffect {
@@ -163,11 +191,15 @@ Item { // Player instance
 
             Rectangle {
                 anchors.fill: parent
-                color: ColorUtils.transparentize(blendedColors.colLayer0, 0.3)
                 radius: root.radius
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: ColorUtils.applyAlpha(blendedColors.colLayer0, 0.65) }
+                    GradientStop { position: 1.0; color: ColorUtils.applyAlpha(blendedColors.colLayer0, 0.92) }
+                }
             }
         }
 
+        // Waveform Visualizer Layer
         WaveVisualizer {
             id: visualizerCanvas
             anchors.fill: parent
@@ -180,67 +212,175 @@ Item { // Player instance
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 13
-            spacing: 15
+            anchors.margins: 12
+            spacing: 14
 
-            Rectangle { // Art background
-                id: artBackground
+            // Floating Album Art Container with Ambient Art Shadow
+            Item {
+                id: artContainer
                 Layout.fillHeight: true
                 implicitWidth: height
-                radius: Appearance.rounding.verysmall
-                color: ColorUtils.transparentize(blendedColors.colLayer1, 0.5)
 
-                layer.enabled: true
-                layer.effect: OpacityMask {
-                    maskSource: Rectangle {
-                        width: artBackground.width
-                        height: artBackground.height
-                        radius: artBackground.radius
+                // Soft art glow shadow matching cover art dominant color
+                Rectangle {
+                    id: artGlow
+                    anchors.centerIn: artBackground
+                    width: artBackground.width * 0.92
+                    height: artBackground.height * 0.92
+                    radius: artBackground.radius
+                    color: root.artDominantColor
+                    opacity: root.player?.isPlaying ? 0.45 : 0.15
+
+                    Behavior on opacity { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        blurEnabled: true
+                        blurMax: 16
+                        blur: 0.8
                     }
                 }
 
-                StyledImage { // Art image
-                    id: mediaArt
-                    property int size: parent.height
-                    anchors.fill: parent
-
-                    source: root.displayedArtFilePath
-                    fillMode: Image.PreserveAspectCrop
-                    cache: false
-                    antialiasing: true
-
-                    width: size
-                    height: size
-                }
-
                 Rectangle {
-                    id: appIconBadge
-                    anchors.bottom: parent.bottom
-                    anchors.right: parent.right
-                    anchors.margins: 4
-                    width: 22
-                    height: 22
-                    radius: Appearance.rounding.full
-                    color: ColorUtils.applyAlpha(blendedColors.colLayer0, 0.88)
-                    visible: appIconImage.status === Image.Ready && appIconImage.source != ""
+                    id: artBackground
+                    anchors.fill: parent
+                    radius: 14
+                    color: ColorUtils.transparentize(blendedColors.colLayer1, 0.5)
+                    scale: root.player?.isPlaying ? 1.0 : 0.94
+                    border.width: 1
+                    border.color: ColorUtils.applyAlpha(blendedColors.colOnLayer0, 0.12)
 
-                    IconImage {
-                        id: appIconImage
-                        anchors.centerIn: parent
-                        implicitSize: 14
-                        asynchronous: true
-                        source: {
-                            let entry = root.player?.desktopEntry || root.player?.identity || "";
-                            return Quickshell.iconPath(AppSearch.guessIcon(entry), "");
+                    Behavior on scale { NumberAnimation { duration: 400; easing.type: Easing.OutBack } }
+
+                    layer.enabled: true
+                    layer.effect: OpacityMask {
+                        maskSource: Rectangle {
+                            width: artBackground.width
+                            height: artBackground.height
+                            radius: artBackground.radius
+                        }
+                    }
+
+                    StyledImage {
+                        id: mediaArt
+                        property int size: parent.height
+                        anchors.fill: parent
+
+                        source: root.displayedArtFilePath
+                        fillMode: Image.PreserveAspectCrop
+                        cache: false
+                        antialiasing: true
+
+                        width: size
+                        height: size
+                    }
+
+                    // Glass App Icon Badge
+                    Rectangle {
+                        id: appIconBadge
+                        anchors.bottom: parent.bottom
+                        anchors.right: parent.right
+                        anchors.margins: 4
+                        width: 22
+                        height: 22
+                        radius: Appearance.rounding.full
+                        color: ColorUtils.applyAlpha(blendedColors.colLayer0, 0.90)
+                        border.width: 1
+                        border.color: ColorUtils.applyAlpha(blendedColors.colOnLayer0, 0.15)
+                        visible: appIconImage.status === Image.Ready && appIconImage.source != ""
+
+                        IconImage {
+                            id: appIconImage
+                            anchors.centerIn: parent
+                            implicitSize: 13
+                            asynchronous: true
+                            source: {
+                                let entry = root.player?.desktopEntry || root.player?.identity || "";
+                                return Quickshell.iconPath(AppSearch.guessIcon(entry), "");
+                            }
                         }
                     }
                 }
             }
 
-            ColumnLayout { // Info & controls
+            // Main Info & Controls Column
+            ColumnLayout {
                 Layout.fillHeight: true
-                spacing: 2
+                spacing: 3
 
+                // Top Status Header: Animated Equalizer & Player Identity
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    Row {
+                        id: soundwaveIndicator
+                        spacing: 2
+                        Layout.alignment: Qt.AlignVCenter
+                        visible: root.player?.isPlaying ?? false
+
+                        Repeater {
+                            model: 3
+                            delegate: Rectangle {
+                                required property int index
+                                width: 3
+                                height: root.player?.isPlaying ? eqHeights[index] : 4
+                                radius: 1.5
+                                color: blendedColors.colPrimary
+
+                                property var eqHeights: [10, 14, 8]
+
+                                SequentialAnimation on height {
+                                    running: root.player?.isPlaying ?? false
+                                    loops: Animation.Infinite
+                                    NumberAnimation { to: 14 - (index * 3); duration: 260 + (index * 90); easing.type: Easing.InOutSine }
+                                    NumberAnimation { to: 4 + (index * 2); duration: 260 + (index * 90); easing.type: Easing.InOutSine }
+                                }
+                            }
+                        }
+                    }
+
+                    StyledText {
+                        font.pixelSize: 10
+                        font.weight: Font.Bold
+                        color: blendedColors.colPrimary
+                        text: (root.player?.identity || "MEDIA PLAYER").toUpperCase()
+                        font.letterSpacing: 1.2
+                        opacity: 0.85
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    // Lyrics Indicator Tag if active
+                    Rectangle {
+                        visible: LyricsService.lyricLines.length > 0 && root.player === LyricsService.activePlayer
+                        radius: Appearance.rounding.full
+                        color: ColorUtils.applyAlpha(blendedColors.colPrimary, 0.14)
+                        border.width: 1
+                        border.color: ColorUtils.applyAlpha(blendedColors.colPrimary, 0.28)
+                        implicitHeight: 16
+                        implicitWidth: lyricsPillRow.implicitWidth + 10
+
+                        RowLayout {
+                            id: lyricsPillRow
+                            anchors.centerIn: parent
+                            spacing: 3
+                            MaterialSymbol {
+                                text: "music_note"
+                                iconSize: 11
+                                color: blendedColors.colPrimary
+                            }
+                            StyledText {
+                                text: "LYRICS"
+                                font.pixelSize: 8
+                                font.weight: Font.Bold
+                                color: blendedColors.colPrimary
+                            }
+                        }
+                    }
+                }
+
+                // Track Title Marquee
                 Item {
                     id: titleMarqueeContainer
                     Layout.fillWidth: true
@@ -273,6 +413,7 @@ Item { // Player instance
                         StyledText {
                             id: trackTitleText
                             font.pixelSize: Appearance.font.pixelSize.large
+                            font.weight: Font.Bold
                             color: blendedColors.colOnLayer0
                             textFormat: Text.PlainText
                             text: titleMarqueeContainer.rawTitle
@@ -281,6 +422,7 @@ Item { // Player instance
                         StyledText {
                             visible: titleMarqueeContainer.isOverflowing && marqueeAnim.running
                             font.pixelSize: Appearance.font.pixelSize.large
+                            font.weight: Font.Bold
                             color: blendedColors.colOnLayer0
                             textFormat: Text.PlainText
                             text: titleMarqueeContainer.rawTitle
@@ -299,6 +441,7 @@ Item { // Player instance
                     }
                 }
 
+                // Artist & Album Marquee
                 Item {
                     id: artistMarqueeContainer
                     Layout.fillWidth: true
@@ -313,7 +456,7 @@ Item { // Player instance
                         if (artist && album && album !== title && !title.includes(album) && artist !== album && !artist.includes(album)) {
                             return `${artist} • ${album}`;
                         }
-                        return artist || album;
+                        return artist || album || "Unknown Artist";
                     }
 
                     onRawSubtitleChanged: {
@@ -365,75 +508,48 @@ Item { // Player instance
                     }
                 }
 
+                // Live Lyric Preview Line
+                StyledText {
+                    id: popupNextLyric
+                    Layout.fillWidth: true
+                    font.pixelSize: Appearance.font.pixelSize.small
+                    font.italic: true
+                    color: blendedColors.colPrimary
+                    opacity: 0.9
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                    visible: text !== ""
+                    text: {
+                        if (root.player !== LyricsService.activePlayer) return "";
+                        if (!LyricsService.isSupportedPlayer(root.player)) return "";
+                        if (LyricsService.lyricLines.length > 0) return LyricsService.nextLyricLine;
+                        if (LyricsService.loading) return "Fetching lyrics…";
+                        return "";
+                    }
+                }
+
                 Item {
                     Layout.fillHeight: true
                 }
 
-                Item {
+                // Bottom Section: Progress Bar & Controls
+                ColumnLayout {
                     Layout.fillWidth: true
-                    implicitHeight: trackTimeLeft.implicitHeight + sliderRow.implicitHeight
+                    spacing: 4
 
-                    StyledText {
-                        id: trackTimeLeft
-                        width: 44
-                        horizontalAlignment: Text.AlignLeft
-                        anchors.bottom: sliderRow.top
-                        anchors.bottomMargin: 5
-                        anchors.left: parent.left
-                        font.pixelSize: Appearance.font.pixelSize.small
-                        color: blendedColors.colSubtext
-                        elide: Text.ElideRight
-                        text: StringUtils.friendlyTimeForSeconds(root.interpolatedPosition)
-                    }
-
-                    StyledText {
-                        id: popupNextLyric
-                        anchors.bottom: sliderRow.top
-                        anchors.bottomMargin: 5
-                        anchors.left: trackTimeLeft.right
-                        anchors.leftMargin: 8
-                        anchors.right: trackTimeRight.left
-                        anchors.rightMargin: 8
-                        horizontalAlignment: Text.AlignHCenter
-                        font.pixelSize: Appearance.font.pixelSize.small
-                        color: blendedColors.colOnLayer0
-                        opacity: LyricsService.lyricLines.length > 0 ? 0.85 : 0.45
-                        elide: Text.ElideRight
-                        maximumLineCount: 1
-                        visible: text !== ""
-                        text: {
-                            if (root.player !== LyricsService.activePlayer) return "";
-                            if (!LyricsService.isSupportedPlayer(root.player)) return "";
-                            if (LyricsService.lyricLines.length > 0) return LyricsService.nextLyricLine;
-                            if (LyricsService.loading) return "Fetching lyrics…";
-                            return "";
-                        }
-                    }
-
-                    StyledText {
-                        id: trackTimeRight
-                        width: 44
-                        horizontalAlignment: Text.AlignRight
-                        anchors.bottom: sliderRow.top
-                        anchors.bottomMargin: 5
-                        anchors.right: playPauseButton.left
-                        anchors.rightMargin: 12
-                        font.pixelSize: Appearance.font.pixelSize.small
-                        color: blendedColors.colSubtext
-                        elide: Text.ElideRight
-                        text: StringUtils.friendlyTimeForSeconds(root.player?.length)
-                    }
+                    // Time Stamps & Wavy Progress Bar Row
                     RowLayout {
-                        id: sliderRow
-                        anchors {
-                            bottom: parent.bottom
-                            left: parent.left
-                            right: parent.right
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        StyledText {
+                            id: trackTimeLeft
+                            font.pixelSize: 10
+                            color: blendedColors.colSubtext
+                            font.family: Appearance.font.family.monospace
+                            text: StringUtils.friendlyTimeForSeconds(root.interpolatedPosition)
                         }
-                        TrackChangeButton {
-                            iconName: "skip_previous"
-                            downAction: () => root.player?.previous()
-                        }
+
                         Item {
                             id: progressBarContainer
                             Layout.fillWidth: true
@@ -446,7 +562,7 @@ Item { // Player instance
                                 sourceComponent: StyledSlider {
                                     configuration: StyledSlider.Configuration.Wavy
                                     highlightColor: blendedColors.colPrimary
-                                    trackColor: blendedColors.colSecondaryContainer
+                                    trackColor: ColorUtils.applyAlpha(blendedColors.colSecondaryContainer, 0.6)
                                     handleColor: blendedColors.colPrimary
                                     value: (root.player?.length || 0) > 0 ? root.interpolatedPosition / root.player.length : 0
                                     onMoved: {
@@ -470,44 +586,89 @@ Item { // Player instance
                                 sourceComponent: StyledProgressBar {
                                     wavy: root.player?.isPlaying
                                     highlightColor: blendedColors.colPrimary
-                                    trackColor: blendedColors.colSecondaryContainer
+                                    trackColor: ColorUtils.applyAlpha(blendedColors.colSecondaryContainer, 0.6)
                                     value: (root.player?.length || 0) > 0 ? root.interpolatedPosition / root.player.length : 0
                                 }
                             }
-
-
                         }
-                        TrackChangeButton {
-                            iconName: "skip_next"
-                            downAction: () => root.player?.next()
+
+                        StyledText {
+                            id: trackTimeRight
+                            font.pixelSize: 10
+                            color: blendedColors.colSubtext
+                            font.family: Appearance.font.family.monospace
+                            text: StringUtils.friendlyTimeForSeconds(root.player?.length)
                         }
                     }
 
-                    RippleButton {
-                        id: playPauseButton
-                        anchors.right: parent.right
-                        anchors.bottom: sliderRow.top
-                        anchors.bottomMargin: 5
-                        property real size: 44
-                        implicitWidth: size
-                        implicitHeight: size
-                        downAction: () => root.player.togglePlaying();
+                    // Action Buttons Row (Prev - Hero Play/Pause - Next)
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignHCenter
+                        spacing: 16
 
-                        buttonRadius: root.player?.isPlaying ? Appearance?.rounding.normal : size / 2
-                        colBackground: root.player?.isPlaying ? blendedColors.colPrimary : blendedColors.colSecondaryContainer
-                        colBackgroundHover: root.player?.isPlaying ? blendedColors.colPrimaryHover : blendedColors.colSecondaryContainerHover
-                        colRipple: root.player?.isPlaying ? blendedColors.colPrimaryActive : blendedColors.colSecondaryContainerActive
+                        TrackChangeButton {
+                            iconName: "skip_previous"
+                            downAction: () => root.player?.previous()
+                            Layout.alignment: Qt.AlignVCenter
+                        }
 
-                        contentItem: MaterialSymbol {
-                            iconSize: Appearance.font.pixelSize.huge
-                            fill: 1
-                            horizontalAlignment: Text.AlignHCenter
-                            color: root.player?.isPlaying ? blendedColors.colOnPrimary : blendedColors.colOnSecondaryContainer
-                            text: root.player?.isPlaying ? "pause" : "play_arrow"
+                        // Central Hero Play/Pause Button
+                        Item {
+                            implicitWidth: 44
+                            implicitHeight: 44
+                            Layout.alignment: Qt.AlignVCenter
 
-                            Behavior on color {
-                                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+                            // Pulsing Aura Ring
+                            Rectangle {
+                                id: playAura
+                                anchors.centerIn: parent
+                                width: parent.width + 6
+                                height: parent.height + 6
+                                radius: Appearance.rounding.full
+                                color: blendedColors.colPrimary
+                                opacity: root.player?.isPlaying ? 0.35 : 0.0
+
+                                SequentialAnimation on scale {
+                                    running: root.player?.isPlaying ?? false
+                                    loops: Animation.Infinite
+                                    NumberAnimation { from: 0.94; to: 1.10; duration: 1100; easing.type: Easing.InOutSine }
+                                    NumberAnimation { from: 1.10; to: 0.94; duration: 1100; easing.type: Easing.InOutSine }
+                                }
                             }
+
+                            RippleButton {
+                                id: playPauseButton
+                                anchors.fill: parent
+                                downAction: () => root.player.togglePlaying();
+
+                                buttonRadius: root.player?.isPlaying ? 14 : 22
+                                colBackground: root.player?.isPlaying ? blendedColors.colPrimary : blendedColors.colSecondaryContainer
+                                colBackgroundHover: root.player?.isPlaying ? blendedColors.colPrimaryHover : blendedColors.colSecondaryContainerHover
+                                colRipple: root.player?.isPlaying ? blendedColors.colPrimaryActive : blendedColors.colSecondaryContainerActive
+
+                                contentItem: MaterialSymbol {
+                                    iconSize: Appearance.font.pixelSize.huge
+                                    fill: 1
+                                    horizontalAlignment: Text.AlignHCenter
+                                    color: root.player?.isPlaying ? blendedColors.colOnPrimary : blendedColors.colOnSecondaryContainer
+                                    text: root.player?.isPlaying ? "pause" : "play_arrow"
+
+                                    Behavior on color {
+                                        animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+                                    }
+                                }
+
+                                Behavior on buttonRadius {
+                                    NumberAnimation { duration: 300; easing.type: Easing.OutBack }
+                                }
+                            }
+                        }
+
+                        TrackChangeButton {
+                            iconName: "skip_next"
+                            downAction: () => root.player?.next()
+                            Layout.alignment: Qt.AlignVCenter
                         }
                     }
                 }
