@@ -211,12 +211,9 @@ MouseArea {
             }
         }
 
-        sourceComponent: PlayerControl {
+        sourceComponent: LockMediaPlayer {
             player: MprisController.activePlayer
             visualizerPoints: root.visualizerPoints
-            implicitWidth: Appearance.sizes.mediaControlsWidth
-            implicitHeight: Appearance.sizes.mediaControlsHeight
-            radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
         }
     }
     
