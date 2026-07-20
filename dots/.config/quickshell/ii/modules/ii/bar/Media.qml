@@ -171,8 +171,18 @@ Item {
 
             readonly property string displayText: {
                 if (!root.hasMedia) return "";
-                let artistStr = activePlayer?.trackArtist || "";
-                return `${cleanedTitle}${artistStr ? ' • ' + artistStr : ''}`;
+                let rawTitle = activePlayer?.trackTitle || "";
+                let rawArtist = activePlayer?.trackArtist || "";
+                let isPlaceholder = LyricsService.isPlaceholderTitle(rawTitle);
+
+                let displayTitle = isPlaceholder ? (StringUtils.cleanMusicTitle(LyricsService.currentTrackName) || cleanedTitle) : cleanedTitle;
+                let displayArtist = isPlaceholder ? (LyricsService.currentArtistName || rawArtist) : rawArtist;
+                let baseInfo = `${displayTitle}${displayArtist ? ' • ' + displayArtist : ''}`;
+
+                if (LyricsService.currentLyricLine && LyricsService.currentLyricLine.length > 0) {
+                    return LyricsService.currentLyricLine;
+                }
+                return baseInfo;
             }
 
             readonly property bool isOverflowing: width > 0 && topBarMusicText.implicitWidth > width + 5
@@ -187,14 +197,20 @@ Item {
 
                 StyledText {
                     id: topBarMusicText
+                    renderType: Text.QtRendering
                     textFormat: Text.PlainText
                     color: Appearance.colors.colOnLayer1
+                    verticalAlignment: Text.AlignVCenter
+                    anchors.verticalCenter: parent.verticalCenter
                     text: topBarTextContainer.displayText
                 }
                 StyledText {
                     visible: topBarTextContainer.isOverflowing && topBarMarqueeAnim.running
+                    renderType: Text.QtRendering
                     textFormat: Text.PlainText
                     color: Appearance.colors.colOnLayer1
+                    verticalAlignment: Text.AlignVCenter
+                    anchors.verticalCenter: parent.verticalCenter
                     text: topBarTextContainer.displayText
                 }
 

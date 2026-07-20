@@ -259,15 +259,21 @@ Item {
 
                 StyledText {
                     id: topBarMusicText
+                    renderType: Text.QtRendering
                     textFormat: Text.PlainText
-                    color: Appearance.colors.colSubtext
+                    color: Appearance.colors.colOnLayer1
+                    verticalAlignment: Text.AlignVCenter
+                    anchors.verticalCenter: parent.verticalCenter
                     text: topBarTextContainer.displayText
                 }
 
                 StyledText {
                     visible: topBarTextContainer.isOverflowing && topBarMarqueeAnim.running
+                    renderType: Text.QtRendering
                     textFormat: Text.PlainText
-                    color: Appearance.colors.colSubtext
+                    color: Appearance.colors.colOnLayer1
+                    verticalAlignment: Text.AlignVCenter
+                    anchors.verticalCenter: parent.verticalCenter
                     text: topBarTextContainer.displayText
                 }
 
