@@ -18,29 +18,6 @@ Item {
     readonly property string cleanedTitle: StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || Translation.tr("No media")
     readonly property list<real> visualizerPoints: CavaService.points
 
-    readonly property list<string> fallbackQuotes: [
-        "Everything happens for a reason",
-        "Silence is also music",
-        "Make today worth remembering",
-        "Keep moving forward",
-        "Create your own sunshine",
-        "Focus on the good",
-        "Dream big, stay humble",
-        "Peace over perfection",
-        "Life is a canvas, paint it bright",
-        "Enjoy the little things",
-        "Simplicity is the key to elegance",
-        "Stay curious, stay inspired",
-        "Trust the timing of your life"
-    ]
-    property int currentQuoteIndex: Math.floor(Math.random() * fallbackQuotes.length)
-
-    onHasMediaChanged: {
-        if (!hasMedia) {
-            currentQuoteIndex = Math.floor(Math.random() * fallbackQuotes.length);
-        }
-    }
-
     readonly property bool isPlaying: activePlayer?.playbackState === MprisPlaybackState.Playing
     readonly property bool hasMedia: activePlayer != null && (isPlaying || (StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || "") !== "")
 
@@ -193,19 +170,9 @@ Item {
             clip: true
 
             readonly property string displayText: {
-                if (!root.hasMedia) return root.fallbackQuotes[root.currentQuoteIndex] || "Everything happens for a reason";
-                let rawTitle = activePlayer?.trackTitle || "";
-                let rawArtist = activePlayer?.trackArtist || "";
-                let isPlaceholder = LyricsService.isPlaceholderTitle(rawTitle);
-
-                let displayTitle = isPlaceholder ? (StringUtils.cleanMusicTitle(LyricsService.currentTrackName) || cleanedTitle) : cleanedTitle;
-                let displayArtist = isPlaceholder ? (LyricsService.currentArtistName || rawArtist) : rawArtist;
-                let baseInfo = `${displayTitle}${displayArtist ? ' • ' + displayArtist : ''}`;
-
-                if (LyricsService.currentLyricLine && LyricsService.currentLyricLine.length > 0) {
-                    return LyricsService.currentLyricLine;
-                }
-                return baseInfo;
+                if (!root.hasMedia) return "";
+                let artistStr = activePlayer?.trackArtist || "";
+                return `${cleanedTitle}${artistStr ? ' • ' + artistStr : ''}`;
             }
 
             readonly property bool isOverflowing: width > 0 && topBarMusicText.implicitWidth > width + 5
