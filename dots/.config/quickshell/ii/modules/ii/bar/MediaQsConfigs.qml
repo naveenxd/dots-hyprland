@@ -204,8 +204,8 @@ Item {
         Item {
             id: topBarTextContainer
             Layout.fillWidth: true
+            Layout.fillHeight: true
             Layout.alignment: Qt.AlignVCenter
-            implicitHeight: topBarMusicText.implicitHeight
             clip: true
 
             readonly property string displayText: {
@@ -255,6 +255,7 @@ Item {
                 id: topBarMarqueeRow
                 spacing: 36
                 x: 0
+                anchors.verticalCenter: parent.verticalCenter
 
                 StyledText {
                     id: topBarMusicText
