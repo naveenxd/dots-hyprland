@@ -318,6 +318,12 @@ Singleton {
                     property string centerRight: "clock,utils,battery"
                     property string right: "weather"
                 }
+                property JsonObject layoutQsConfigs: JsonObject {
+                    property string left: "media"
+                    property string center: "workspaces"
+                    property string centerRight: "clock,weather"
+                    property string right: "utils,netspeed,resources"
+                }
             }
 
             property JsonObject battery: JsonObject {

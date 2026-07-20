@@ -12,6 +12,14 @@ import qs.modules.common.functions
 Item { // Bar content region
     id: root
 
+    function isWidgetEnabled(widgetName) {
+        let layout = Config.options?.bar?.layoutQsConfigs;
+        if (!layout) return true;
+        let str = ((layout.left || "") + "," + (layout.center || "") + "," + (layout.centerRight || "") + "," + (layout.right || "")).toLowerCase();
+        let items = str.split(",").map(x => x.trim());
+        return items.includes(widgetName.toLowerCase());
+    }
+
     property var screen: root.QsWindow.window?.screen
     property var brightnessMonitor: Brightness.getMonitorForScreen(screen)
     property real useShortenedForm: (Appearance.sizes.barHellaShortenScreenWidthThreshold >= screen?.width) ? 2 : (Appearance.sizes.barShortenScreenWidthThreshold >= screen?.width) ? 1 : 0
@@ -74,6 +82,7 @@ Item { // Bar content region
         }
 
         MediaQsConfigs {
+            visible: root.isWidgetEnabled("media")
             anchors.fill: parent
             anchors.leftMargin: Appearance.rounding.screenRounding
             anchors.rightMargin: 0
@@ -92,6 +101,7 @@ Item { // Bar content region
 
         BarGroup {
             id: middleCenterGroup
+            visible: root.isWidgetEnabled("workspaces")
             anchors.verticalCenter: parent.verticalCenter
             padding: workspacesWidget.widgetPadding
 
@@ -264,6 +274,7 @@ Item { // Bar content region
 
             // DateTime + Weather
             MouseArea {
+                visible: root.isWidgetEnabled("clock") || root.isWidgetEnabled("weather")
                 Layout.alignment: Qt.AlignVCenter
                 implicitWidth: clockGroupContent.implicitWidth + 8
                 implicitHeight: Appearance.sizes.baseBarHeight
@@ -286,12 +297,13 @@ Item { // Bar content region
                         spacing: 0
                         
                         ClockWidget {
+                            visible: root.isWidgetEnabled("clock")
                             showDate: (Config.options.bar.verbose && root.useShortenedForm < 2)
                             Layout.alignment: Qt.AlignVCenter
                         }
 
                         StyledText {
-                            visible: Config.options.bar.weather.enable
+                            visible: root.isWidgetEnabled("clock") && root.isWidgetEnabled("weather") && Config.options.bar.weather.enable
                             Layout.alignment: Qt.AlignVCenter
                             font.pixelSize: Appearance.font.pixelSize.small
                             color: Appearance.colors.colSubtext
@@ -299,7 +311,7 @@ Item { // Bar content region
                         }
 
                         Loader {
-                            active: Config.options.bar.weather.enable
+                            active: root.isWidgetEnabled("weather") && Config.options.bar.weather.enable
                             Layout.alignment: Qt.AlignVCenter
                             Layout.rightMargin: 4
                             sourceComponent: WeatherBar {}
@@ -318,7 +330,7 @@ Item { // Bar content region
             BarGroup {
                 id: utilButtonsGroup
                 Layout.alignment: Qt.AlignVCenter
-                visible: Config.options.bar.verbose && root.useShortenedForm === 0 && utilButtonsItem.implicitWidth > 8
+                visible: root.isWidgetEnabled("utils") && Config.options.bar.verbose && root.useShortenedForm === 0 && utilButtonsItem.implicitWidth > 8
                 Layout.preferredWidth: visible ? implicitWidth : 0
 
                 UtilButtons {
@@ -333,6 +345,7 @@ Item { // Bar content region
             BarGroup {
                 id: networkSpeedGroup
                 Layout.alignment: Qt.AlignVCenter
+                visible: root.isWidgetEnabled("netspeed")
 
                 NetworkSpeedMeter {
                     Layout.alignment: Qt.AlignVCenter
@@ -345,6 +358,7 @@ Item { // Bar content region
             BarGroup {
                 id: resourcesGroup
                 Layout.alignment: Qt.AlignVCenter
+                visible: root.isWidgetEnabled("resources")
 
                 Resources {
                     alwaysShowAllResources: true
