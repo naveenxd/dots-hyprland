@@ -14,8 +14,11 @@ Item { // Bar content region
 
     function isWidgetEnabled(widgetName) {
         let layout = Config.options?.bar?.layoutQsConfigs;
-        if (!layout) return true;
-        let str = ((layout.left || "") + "," + (layout.center || "") + "," + (layout.centerRight || "") + "," + (layout.right || "")).toLowerCase();
+        let leftStr = layout?.left ?? "media";
+        let centerStr = layout?.center ?? "workspaces";
+        let centerRightStr = layout?.centerRight ?? "clock,weather";
+        let rightStr = layout?.right ?? "utils,netspeed,resources";
+        let str = (leftStr + "," + centerStr + "," + centerRightStr + "," + rightStr).toLowerCase();
         let items = str.split(",").map(x => x.trim());
         return items.includes(widgetName.toLowerCase());
     }

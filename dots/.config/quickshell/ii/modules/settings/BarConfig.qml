@@ -192,8 +192,11 @@ ContentPage {
 
                 WidgetListEditor {
                     Layout.fillWidth: true
-                    currentValue: Config.options.bar.layoutQsConfigs.left
+                    currentValue: Config.options?.bar?.layoutQsConfigs?.left ?? "media"
                     onValueChanged: (newValue) => {
+                        if (!Config.options.bar.layoutQsConfigs) {
+                            Config.options.bar.layoutQsConfigs = { left: "media", center: "workspaces", centerRight: "clock,weather", right: "utils,netspeed,resources" };
+                        }
                         Config.options.bar.layoutQsConfigs.left = newValue;
                     }
                 }
@@ -204,8 +207,11 @@ ContentPage {
 
                 WidgetListEditor {
                     Layout.fillWidth: true
-                    currentValue: Config.options.bar.layoutQsConfigs.center
+                    currentValue: Config.options?.bar?.layoutQsConfigs?.center ?? "workspaces"
                     onValueChanged: (newValue) => {
+                        if (!Config.options.bar.layoutQsConfigs) {
+                            Config.options.bar.layoutQsConfigs = { left: "media", center: "workspaces", centerRight: "clock,weather", right: "utils,netspeed,resources" };
+                        }
                         Config.options.bar.layoutQsConfigs.center = newValue;
                     }
                 }
@@ -216,8 +222,11 @@ ContentPage {
 
                 WidgetListEditor {
                     Layout.fillWidth: true
-                    currentValue: Config.options.bar.layoutQsConfigs.centerRight
+                    currentValue: Config.options?.bar?.layoutQsConfigs?.centerRight ?? "clock,weather"
                     onValueChanged: (newValue) => {
+                        if (!Config.options.bar.layoutQsConfigs) {
+                            Config.options.bar.layoutQsConfigs = { left: "media", center: "workspaces", centerRight: "clock,weather", right: "utils,netspeed,resources" };
+                        }
                         Config.options.bar.layoutQsConfigs.centerRight = newValue;
                     }
                 }
@@ -228,8 +237,11 @@ ContentPage {
 
                 WidgetListEditor {
                     Layout.fillWidth: true
-                    currentValue: Config.options.bar.layoutQsConfigs.right
+                    currentValue: Config.options?.bar?.layoutQsConfigs?.right ?? "utils,netspeed,resources"
                     onValueChanged: (newValue) => {
+                        if (!Config.options.bar.layoutQsConfigs) {
+                            Config.options.bar.layoutQsConfigs = { left: "media", center: "workspaces", centerRight: "clock,weather", right: "utils,netspeed,resources" };
+                        }
                         Config.options.bar.layoutQsConfigs.right = newValue;
                     }
                 }
