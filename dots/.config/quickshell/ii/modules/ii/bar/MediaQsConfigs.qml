@@ -31,6 +31,29 @@ Item {
         }
     }
 
+    readonly property list<string> fallbackQuotes: [
+        "Everything happens for a reason",
+        "Silence is also music",
+        "Make today worth remembering",
+        "Keep moving forward",
+        "Create your own sunshine",
+        "Focus on the good",
+        "Dream big, stay humble",
+        "Peace over perfection",
+        "Life is a canvas, paint it bright",
+        "Enjoy the little things",
+        "Simplicity is the key to elegance",
+        "Stay curious, stay inspired",
+        "Trust the timing of your life"
+    ]
+    property int currentQuoteIndex: Math.floor(Math.random() * fallbackQuotes.length)
+
+    onHasMediaChanged: {
+        if (!hasMedia) {
+            currentQuoteIndex = Math.floor(Math.random() * fallbackQuotes.length);
+        }
+    }
+
     // State helpers
     readonly property bool isPlaying: activePlayer?.playbackState === MprisPlaybackState.Playing
     readonly property bool isPaused: activePlayer != null && !root.isPlaying
@@ -210,7 +233,7 @@ Item {
 
             readonly property string displayText: {
                 if (!root.hasMedia) {
-                    return "Everything happens for a reason";
+                    return root.fallbackQuotes[root.currentQuoteIndex] || "Everything happens for a reason";
                 }
                 let rawTitle = activePlayer?.trackTitle || "";
                 let rawArtist = activePlayer?.trackArtist || "";
