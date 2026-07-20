@@ -101,10 +101,23 @@ Scope {
                         }
                     }
 
-                    BarContent {
+                    Loader {
                         id: barContent
+                        sourceComponent: (Config.options?.bar?.style === "qs_configs" || Config.options?.bar?.style === "compact")
+                            ? qsConfigsBarContentComponent
+                            : defaultBarContentComponent
+
+                        Component {
+                            id: defaultBarContentComponent
+                            BarContent {}
+                        }
+
+                        Component {
+                            id: qsConfigsBarContentComponent
+                            BarContentQsConfigs {}
+                        }
                         
-                        implicitHeight: Appearance.sizes.barHeight
+                        height: Appearance.sizes.barHeight
                         anchors {
                             right: parent.right
                             left: parent.left

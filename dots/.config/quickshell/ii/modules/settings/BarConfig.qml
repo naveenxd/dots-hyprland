@@ -8,6 +8,31 @@ ContentPage {
     forceWidth: true
 
     ContentSection {
+        icon: "style"
+        title: Translation.tr("Bar Style")
+
+        ConfigSelectionArray {
+            Layout.fillWidth: true
+            currentValue: Config.options.bar.style ?? "ii"
+            onSelected: newValue => {
+                Config.options.bar.style = newValue;
+            }
+            options: [
+                {
+                    displayName: Translation.tr("Default (Modular)"),
+                    icon: "view_day",
+                    value: "ii"
+                },
+                {
+                    displayName: Translation.tr("qs_configs (Compact)"),
+                    icon: "space_dashboard",
+                    value: "qs_configs"
+                }
+            ]
+        }
+    }
+
+    ContentSection {
         icon: "notifications"
         title: Translation.tr("Notifications")
 

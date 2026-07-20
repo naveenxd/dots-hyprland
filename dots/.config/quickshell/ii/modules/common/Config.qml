@@ -246,6 +246,7 @@ Singleton {
             }
 
             property JsonObject bar: JsonObject {
+                property string style: "ii" // Options: "ii", "qs_configs"
                 property JsonObject autoHide: JsonObject {
                     property bool enable: false
                     property int hoverRegionWidth: 2
