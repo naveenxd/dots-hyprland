@@ -8,6 +8,31 @@ ContentPage {
     forceWidth: true
 
     ContentSection {
+        icon: "style"
+        title: Translation.tr("Bar Style")
+
+        ConfigSelectionArray {
+            Layout.fillWidth: true
+            currentValue: Config.options.bar.style ?? "ii"
+            onSelected: newValue => {
+                Config.options.bar.style = newValue;
+            }
+            options: [
+                {
+                    displayName: Translation.tr("Default (Modular)"),
+                    icon: "view_day",
+                    value: "ii"
+                },
+                {
+                    displayName: Translation.tr("qs_configs (Compact)"),
+                    icon: "space_dashboard",
+                    value: "qs_configs"
+                }
+            ]
+        }
+    }
+
+    ContentSection {
         icon: "notifications"
         title: Translation.tr("Notifications")
 
@@ -77,81 +102,99 @@ ContentPage {
 
     ContentSection {
         icon: "view_column"
-        title: Translation.tr("Widget Layout")
+        title: (Config.options.bar.style === "qs_configs" || Config.options.bar.style === "compact")
+            ? Translation.tr("Widget Layout (Compact Style)")
+            : Translation.tr("Widget Layout (Default Style)")
 
-        ContentSubsection {
-            title: Translation.tr("Left widgets (e.g. activewindow)")
-
-            WidgetListEditor {
-                Layout.fillWidth: true
-                currentValue: Config.options.bar.layout.left
-                onValueChanged: (newValue) => {
-                    Config.options.bar.layout.left = newValue;
-                }
-            }
-
-        }
-
-        ContentSubsection {
-            title: Translation.tr("Center-Left widgets (e.g. resources, media)")
-
-            WidgetListEditor {
-                Layout.fillWidth: true
-                currentValue: Config.options.bar.layout.centerLeft
-                onValueChanged: (newValue) => {
-                    Config.options.bar.layout.centerLeft = newValue;
-                }
-            }
-
-        }
-
-        ContentSubsection {
-            title: Translation.tr("Center widgets (e.g. workspaces)")
-
-            WidgetListEditor {
-                Layout.fillWidth: true
-                currentValue: Config.options.bar.layout.center
-                onValueChanged: (newValue) => {
-                    Config.options.bar.layout.center = newValue;
-                }
-            }
-
-        }
-
-        ContentSubsection {
-            title: Translation.tr("Center-Right widgets (e.g. clock, utils, battery)")
-
-            WidgetListEditor {
-                Layout.fillWidth: true
-                currentValue: Config.options.bar.layout.centerRight
-                onValueChanged: (newValue) => {
-                    Config.options.bar.layout.centerRight = newValue;
-                }
-            }
-
-        }
-
-        ContentSubsection {
-            title: Translation.tr("Right widgets (e.g. weather)")
-
-            WidgetListEditor {
-                Layout.fillWidth: true
-                currentValue: Config.options.bar.layout.right
-                onValueChanged: (newValue) => {
-                    Config.options.bar.layout.right = newValue;
-                }
-            }
-
-        }
-
-        StyledText {
+        // DEFAULT BAR LAYOUT EDITORS
+        ColumnLayout {
             Layout.fillWidth: true
-            text: Translation.tr("Available widgets: activewindow, lyrics, media, resources, workspaces, clock, utils, battery, netspeed, weather. Choose widgets to add or remove them from the bar layout.")
-            color: Appearance.colors.colOnLayer1
-            font.pixelSize: Appearance.font.pixelSize.small
-            wrapMode: Text.WordWrap
+            spacing: 12
+            visible: !(Config.options.bar.style === "qs_configs" || Config.options.bar.style === "compact")
+
+            ContentSubsection {
+                title: Translation.tr("Left widgets (e.g. activewindow)")
+
+                WidgetListEditor {
+                    Layout.fillWidth: true
+                    currentValue: Config.options.bar.layout.left
+                    onValueChanged: (newValue) => {
+                        Config.options.bar.layout.left = newValue;
+                    }
+                }
+            }
+
+            ContentSubsection {
+                title: Translation.tr("Center-Left widgets (e.g. resources, media)")
+
+                WidgetListEditor {
+                    Layout.fillWidth: true
+                    currentValue: Config.options.bar.layout.centerLeft
+                    onValueChanged: (newValue) => {
+                        Config.options.bar.layout.centerLeft = newValue;
+                    }
+                }
+            }
+
+            ContentSubsection {
+                title: Translation.tr("Center widgets (e.g. workspaces)")
+
+                WidgetListEditor {
+                    Layout.fillWidth: true
+                    currentValue: Config.options.bar.layout.center
+                    onValueChanged: (newValue) => {
+                        Config.options.bar.layout.center = newValue;
+                    }
+                }
+            }
+
+            ContentSubsection {
+                title: Translation.tr("Center-Right widgets (e.g. clock, utils, battery)")
+
+                WidgetListEditor {
+                    Layout.fillWidth: true
+                    currentValue: Config.options.bar.layout.centerRight
+                    onValueChanged: (newValue) => {
+                        Config.options.bar.layout.centerRight = newValue;
+                    }
+                }
+            }
+
+            ContentSubsection {
+                title: Translation.tr("Right widgets (e.g. weather)")
+
+                WidgetListEditor {
+                    Layout.fillWidth: true
+                    currentValue: Config.options.bar.layout.right
+                    onValueChanged: (newValue) => {
+                        Config.options.bar.layout.right = newValue;
+                    }
+                }
+            }
+
+            StyledText {
+                Layout.fillWidth: true
+                text: Translation.tr("Available widgets: activewindow, lyrics, media, resources, workspaces, clock, utils, battery, netspeed, weather. Choose widgets to add or remove them from the bar layout.")
+                color: Appearance.colors.colOnLayer1
+                font.pixelSize: Appearance.font.pixelSize.small
+                wrapMode: Text.WordWrap
+            }
         }
 
+        // COMPACT (qs_configs) BAR LAYOUT NOTICE
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 12
+            visible: (Config.options.bar.style === "qs_configs" || Config.options.bar.style === "compact")
+
+            StyledText {
+                Layout.fillWidth: true
+                text: Translation.tr("The compact style features a dedicated, fixed layout with media, workspaces, resources, network speed, clock/weather, and system indicator controls.")
+                color: Appearance.colors.colOnLayer1
+                font.pixelSize: Appearance.font.pixelSize.normal
+                wrapMode: Text.WordWrap
+            }
+        }
     }
 
     ContentSection {

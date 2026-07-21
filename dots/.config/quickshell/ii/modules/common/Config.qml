@@ -246,6 +246,7 @@ Singleton {
             }
 
             property JsonObject bar: JsonObject {
+                property string style: "ii" // Options: "ii", "qs_configs"
                 property JsonObject autoHide: JsonObject {
                     property bool enable: false
                     property int hoverRegionWidth: 2
@@ -316,6 +317,10 @@ Singleton {
                     property string center: "workspaces"
                     property string centerRight: "clock,utils,battery"
                     property string right: "weather"
+                }
+                property JsonObject layoutQsConfigs: JsonObject {
+                    property string left: "media"
+                    property string right: "workspaces,resources,netspeed,clock,weather,utils"
                 }
             }
 

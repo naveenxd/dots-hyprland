@@ -165,8 +165,8 @@ Item {
         Item {
             id: topBarTextContainer
             Layout.fillWidth: true
+            Layout.fillHeight: true
             Layout.alignment: Qt.AlignVCenter
-            implicitHeight: topBarMusicText.implicitHeight
             clip: true
 
             readonly property string displayText: {
@@ -183,17 +183,24 @@ Item {
                 id: topBarMarqueeRow
                 spacing: 36
                 x: 0
+                anchors.verticalCenter: parent.verticalCenter
 
                 StyledText {
                     id: topBarMusicText
+                    renderType: Text.QtRendering
                     textFormat: Text.PlainText
                     color: Appearance.colors.colOnLayer1
+                    verticalAlignment: Text.AlignVCenter
+                    anchors.verticalCenter: parent.verticalCenter
                     text: topBarTextContainer.displayText
                 }
                 StyledText {
                     visible: topBarTextContainer.isOverflowing && topBarMarqueeAnim.running
+                    renderType: Text.QtRendering
                     textFormat: Text.PlainText
                     color: Appearance.colors.colOnLayer1
+                    verticalAlignment: Text.AlignVCenter
+                    anchors.verticalCenter: parent.verticalCenter
                     text: topBarTextContainer.displayText
                 }
 
