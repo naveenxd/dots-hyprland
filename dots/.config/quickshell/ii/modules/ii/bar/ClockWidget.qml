@@ -9,16 +9,10 @@ Item {
     id: root
     property bool borderless: Config.options.bar.borderless
     property bool showDate: Config.options.bar.verbose
-    property string timeFormat: {
-        let format = Config.options?.time?.format ?? "hh:mm";
-        format = format.replace(/:ss/g, "").replace(/ss/g, "");
-        if (Config.options?.bar?.showSeconds || Config.options?.time?.secondPrecision) {
-            if (format.includes("ap") || format.includes("AP"))
-                return format.replace(/(?=\s*[aA][pP]$)/, ":ss");
-            return `${format}:ss`;
-        }
-        return format;
-    }
+    property string timeFormat: DateTime.normalizeTimeFormat(
+        Config.options?.time?.format ?? "hh:mm",
+        Config.options?.bar?.showSeconds || Config.options?.time?.secondPrecision
+    )
     implicitWidth: rowLayout.implicitWidth
     implicitHeight: Appearance.sizes.barHeight
 

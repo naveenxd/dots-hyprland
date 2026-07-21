@@ -16,15 +16,27 @@ Singleton {
             ? SystemClock.Seconds
             : SystemClock.Minutes
     }
-    property string time: {
-        let fmt = Config.options?.time?.format ?? "hh:mm";
-        if (Config.options?.time?.secondPrecision || Config.options?.bar?.showSeconds) {
-            const withSeconds = fmt.replace(/( [aA][pP]?)$/, ":ss$1");
-            const finalFmt = withSeconds === fmt ? fmt + ":ss" : withSeconds;
-            return Qt.locale().toString(clock.date, finalFmt);
+    function normalizeTimeFormat(fmt, enableSeconds) {
+        if (!fmt) fmt = "hh:mm";
+
+        const parts = fmt.split(/('[^']*')/);
+        const stripped = parts.map(part => {
+            if (part.startsWith("'") && part.endsWith("'")) return part;
+            return part.replace(/:s{1,2}/g, "").replace(/\bs{1,2}\b/g, "");
+        }).join("");
+
+        if (!enableSeconds) return stripped;
+
+        if (/(\s*[aA][pP])$/.test(stripped)) {
+            return stripped.replace(/(\s*[aA][pP])$/, ":ss$1");
         }
-        fmt = fmt.replace(/:ss/g, "").replace(/ss/g, "");
-        return Qt.locale().toString(clock.date, fmt);
+        return stripped + ":ss";
+    }
+
+    property string time: {
+        const fmt = Config.options?.time?.format ?? "hh:mm";
+        const enableSec = Config.options?.time?.secondPrecision || Config.options?.bar?.showSeconds;
+        return Qt.locale().toString(clock.date, normalizeTimeFormat(fmt, enableSec));
     }
     property string shortDate: Qt.locale().toString(clock.date, Config.options?.time?.shortDateFormat ?? "dd/MM")
     property string date: Qt.locale().toString(clock.date, Config.options?.time?.dateWithYearFormat ?? "dd/MM/yyyy")

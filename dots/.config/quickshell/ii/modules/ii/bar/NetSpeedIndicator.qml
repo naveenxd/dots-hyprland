@@ -26,47 +26,35 @@ Item {
 
     // ── Config ──────────────────────────────────────────────
     property string iface: Config.options?.networking?.iface ?? ""
-    readonly property string activeIface: getActiveInterface()
+    property string activeIface: ""
 
-    function getActiveInterface() {
-        if (root.iface && root.iface.length > 0) return root.iface
+    property bool _pendingActiveIfaceCheck: false
+    property bool _pendingDevFallbackCheck: false
+    property bool _pendingLiveSpeedUpdate: false
 
-        // 1. Check default route in /proc/net/route
+    onIfaceChanged: refreshActiveIface()
+
+    Component.onCompleted: refreshActiveIface()
+
+    function refreshActiveIface() {
+        if (root.iface && root.iface.length > 0) {
+            root._pendingActiveIfaceCheck = false
+            root._pendingDevFallbackCheck = false
+            root.activeIface = root.iface
+            return
+        }
+
+        root._pendingActiveIfaceCheck = true
         fileRoute.reload()
-        const text = fileRoute.text()
-        if (text) {
-            const lines = text.split("\n")
-            for (let i = 1; i < lines.length; i++) {
-                const parts = lines[i].trim().split(/\s+/)
-                if (parts.length >= 2 && parts[1] === "00000000" && parts[0] !== "lo") {
-                    return parts[0]
-                }
-            }
-        }
-
-        // 2. Fallback to first non-loopback non-virtual interface in /proc/net/dev
-        fileDev.reload()
-        const devText = fileDev.text()
-        if (devText) {
-            const devLines = devText.split("\n")
-            for (let i = 2; i < devLines.length; i++) {
-                const line = devLines[i].trim()
-                if (!line || !line.includes(":")) continue
-                const name = line.split(":")[0].trim()
-                if (name !== "lo" && !name.startsWith("veth") && !name.startsWith("docker") && !name.startsWith("br-") && !name.startsWith("virbr") && !name.startsWith("waydroid") && !name.startsWith("tun") && !name.startsWith("tap")) {
-                    return name
-                }
-            }
-        }
-
-        return ""
     }
 
     onActiveIfaceChanged: {
         root._prevRx = -1
         root._prevTx = -1
-        if (!vnstatProc.running)
-            vnstatProc.running = true
+        if (vnstatProc.running) {
+            vnstatProc.running = false
+        }
+        vnstatProc.running = true
     }
 
     // ── State ───────────────────────────────────────────────
@@ -103,16 +91,65 @@ Item {
         return fmtSpeed(root.txBps)
     }
 
-    // ── /proc/net reader (Live Speed) ───────────────────
-    FileView { id: fileRoute; path: "/proc/net/route" }
-    FileView { id: fileDev; path: "/proc/net/dev" }
+    // ── /proc/net reader (FileViews & Load Callbacks) ────────
+    FileView {
+        id: fileRoute
+        path: "/proc/net/route"
+        onTextChanged: {
+            if (!root._pendingActiveIfaceCheck) return
+            root._pendingActiveIfaceCheck = false
 
-    function updateLiveSpeed() {
-        const target = root.activeIface
-        fileDev.reload()
-        const text = fileDev.text()
+            const text = fileRoute.text()
+            if (text) {
+                const lines = text.split("\n")
+                for (let i = 1; i < lines.length; i++) {
+                    const parts = lines[i].trim().split(/\s+/)
+                    if (parts.length >= 2 && parts[1] === "00000000" && parts[0] !== "lo") {
+                        root.activeIface = parts[0]
+                        return
+                    }
+                }
+            }
+
+            // Fallback to dev check
+            root._pendingDevFallbackCheck = true
+            fileDev.reload()
+        }
+    }
+
+    FileView {
+        id: fileDev
+        path: "/proc/net/dev"
+        onTextChanged: {
+            if (root._pendingDevFallbackCheck) {
+                root._pendingDevFallbackCheck = false
+                const devText = fileDev.text()
+                if (devText) {
+                    const devLines = devText.split("\n")
+                    for (let i = 2; i < devLines.length; i++) {
+                        const line = devLines[i].trim()
+                        if (!line || !line.includes(":")) continue
+                        const name = line.split(":")[0].trim()
+                        if (name !== "lo" && !name.startsWith("veth") && !name.startsWith("docker") && !name.startsWith("br-") && !name.startsWith("virbr") && !name.startsWith("waydroid") && !name.startsWith("tun") && !name.startsWith("tap")) {
+                            root.activeIface = name
+                            return
+                        }
+                    }
+                }
+                root.activeIface = ""
+            }
+
+            if (root._pendingLiveSpeedUpdate) {
+                root._pendingLiveSpeedUpdate = false
+                root.parseLiveSpeed(fileDev.text())
+            }
+        }
+    }
+
+    function parseLiveSpeed(text) {
         if (!text) return
 
+        const target = root.activeIface
         const lines = text.split("\n")
         let rx = -1
         let tx = -1
@@ -172,7 +209,9 @@ Item {
         repeat: true
         triggeredOnStart: true
         onTriggered: {
-            root.updateLiveSpeed()
+            root.refreshActiveIface()
+            root._pendingLiveSpeedUpdate = true
+            fileDev.reload()
         }
     }
 
@@ -230,6 +269,7 @@ Item {
         repeat: true
         triggeredOnStart: true
         onTriggered: {
+            root.refreshActiveIface()
             if (!vnstatProc.running)
                 vnstatProc.running = true
         }
