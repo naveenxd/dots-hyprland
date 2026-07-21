@@ -251,7 +251,7 @@ Item { // Bar content region
                         color: rightSidebarButton.colText
                     }
                     BatteryIndicator {
-                        visible: Battery.available
+                        visible: Battery.available && (Config.options?.bar?.indicators?.showBattery ?? true)
                         Layout.alignment: Qt.AlignVCenter
                         Layout.leftMargin: 8
                     }

@@ -25,7 +25,37 @@ Item {
     implicitHeight: contentRow.implicitHeight
 
     // ── Config ──────────────────────────────────────────────
-    property string iface: "wlan0"
+    property string iface: Config.options?.networking?.iface ?? ""
+    property string activeIface: ""
+
+    property bool _pendingActiveIfaceCheck: false
+    property bool _pendingDevFallbackCheck: false
+    property bool _pendingLiveSpeedUpdate: false
+
+    onIfaceChanged: refreshActiveIface()
+
+    Component.onCompleted: refreshActiveIface()
+
+    function refreshActiveIface() {
+        if (root.iface && root.iface.length > 0) {
+            root._pendingActiveIfaceCheck = false
+            root._pendingDevFallbackCheck = false
+            root.activeIface = root.iface
+            return
+        }
+
+        root._pendingActiveIfaceCheck = true
+        fileRoute.reload()
+    }
+
+    onActiveIfaceChanged: {
+        root._prevRx = -1
+        root._prevTx = -1
+        if (vnstatProc.running) {
+            vnstatProc.running = false
+        }
+        vnstatProc.running = true
+    }
 
     // ── State ───────────────────────────────────────────────
     property int mode: 0          // 0 = live | 1 = today's totals | 2 = both
@@ -61,39 +91,115 @@ Item {
         return fmtSpeed(root.txBps)
     }
 
-    // ── /proc/net/dev reader (Live Speed) ───────────────────
-    Process {
-        id: netProc
-        command: ["cat", "/proc/net/dev"]
-        running: false
+    // ── /proc/net reader (FileViews & Load Callbacks) ────────
+    FileView {
+        id: fileRoute
+        path: "/proc/net/route"
+        onTextChanged: {
+            if (!root._pendingActiveIfaceCheck) return
+            root._pendingActiveIfaceCheck = false
 
-        stdout: SplitParser {
-            onRead: line => {
-                var l = line.trim()
-                if (!l.startsWith(root.iface + ":")) return
-
-                var parts = l.slice(l.indexOf(":") + 1).trim().split(/\s+/)
-                if (parts.length < 9) return
-
-                var rx = parseFloat(parts[0])
-                var tx = parseFloat(parts[8])
-                var now = Date.now() / 1000.0
-
-                if (root._prevRx >= 0) {
-                    var dt = now - root._prevTime
-                    if (dt > 0.01) {
-                        var drx = Math.max(0, rx - root._prevRx)
-                        var dtx = Math.max(0, tx - root._prevTx)
-                        root.rxBps = drx / dt
-                        root.txBps = dtx / dt
+            const text = fileRoute.text()
+            if (text) {
+                const lines = text.split("\n")
+                for (let i = 1; i < lines.length; i++) {
+                    const parts = lines[i].trim().split(/\s+/)
+                    if (parts.length >= 2 && parts[1] === "00000000" && parts[0] !== "lo") {
+                        root.activeIface = parts[0]
+                        return
                     }
                 }
+            }
 
-                root._prevRx   = rx
-                root._prevTx   = tx
-                root._prevTime = now
+            // Fallback to dev check
+            root._pendingDevFallbackCheck = true
+            fileDev.reload()
+        }
+    }
+
+    FileView {
+        id: fileDev
+        path: "/proc/net/dev"
+        onTextChanged: {
+            if (root._pendingDevFallbackCheck) {
+                root._pendingDevFallbackCheck = false
+                const devText = fileDev.text()
+                if (devText) {
+                    const devLines = devText.split("\n")
+                    for (let i = 2; i < devLines.length; i++) {
+                        const line = devLines[i].trim()
+                        if (!line || !line.includes(":")) continue
+                        const name = line.split(":")[0].trim()
+                        if (name !== "lo" && !name.startsWith("veth") && !name.startsWith("docker") && !name.startsWith("br-") && !name.startsWith("virbr") && !name.startsWith("waydroid") && !name.startsWith("tun") && !name.startsWith("tap")) {
+                            root.activeIface = name
+                            return
+                        }
+                    }
+                }
+                root.activeIface = ""
+            }
+
+            if (root._pendingLiveSpeedUpdate) {
+                root._pendingLiveSpeedUpdate = false
+                root.parseLiveSpeed(fileDev.text())
             }
         }
+    }
+
+    function parseLiveSpeed(text) {
+        if (!text) return
+
+        const target = root.activeIface
+        const lines = text.split("\n")
+        let rx = -1
+        let tx = -1
+
+        for (let i = 2; i < lines.length; i++) {
+            const line = lines[i].trim()
+            if (!line || !line.includes(":")) continue
+
+            const parts = line.split(":")
+            const ifName = parts[0].trim()
+
+            if (target !== "") {
+                if (ifName !== target) continue
+            } else {
+                if (ifName === "lo" || ifName.startsWith("veth") || ifName.startsWith("docker") || ifName.startsWith("br-") || ifName.startsWith("virbr") || ifName.startsWith("waydroid") || ifName.startsWith("tun") || ifName.startsWith("tap")) continue
+            }
+
+            const stats = parts[1].trim().split(/\s+/)
+            if (stats.length < 9) continue
+
+            const devRx = parseFloat(stats[0])
+            const devTx = parseFloat(stats[8])
+
+            if (target !== "") {
+                rx = devRx
+                tx = devTx
+                break
+            } else {
+                if (rx < 0) { rx = 0; tx = 0; }
+                rx += devRx
+                tx += devTx
+            }
+        }
+
+        if (rx < 0 || tx < 0) return
+
+        const now = Date.now() / 1000.0
+        if (root._prevRx >= 0 && root._prevTx >= 0) {
+            const dt = now - root._prevTime
+            if (dt > 0.01) {
+                const drx = Math.max(0, rx - root._prevRx)
+                const dtx = Math.max(0, tx - root._prevTx)
+                root.rxBps = drx / dt
+                root.txBps = dtx / dt
+            }
+        }
+
+        root._prevRx = rx
+        root._prevTx = tx
+        root._prevTime = now
     }
 
     Timer {
@@ -103,15 +209,44 @@ Item {
         repeat: true
         triggeredOnStart: true
         onTriggered: {
-            if (!netProc.running)
-                netProc.running = true
+            root.refreshActiveIface()
+            root._pendingLiveSpeedUpdate = true
+            fileDev.reload()
         }
     }
 
     // ── vnstat reader (Daily Totals) ────────────────────────
     Process {
         id: vnstatProc
-        command: ["vnstat", "-i", root.iface, "--oneline"]
+        command: root.activeIface !== ""
+            ? ["vnstat", "-i", root.activeIface, "--oneline"]
+            : ["vnstat", "--oneline"]
+        running: false
+
+        stdout: SplitParser {
+            onRead: line => {
+                var parts = line.trim().split(";")
+                if (parts.length >= 7) {
+                    root.downloadToday = parts[3].trim()
+                    root.uploadToday = parts[4].trim()
+                    root.totalToday = parts[5].trim()
+                    root.avgSpeedToday = parts[6].trim()
+                }
+            }
+        }
+
+        stderr: SplitParser {
+            onRead: errLine => {
+                if (root.activeIface !== "" && (errLine.includes("Error") || errLine.includes("Unable"))) {
+                    fallbackVnstatProc.running = true
+                }
+            }
+        }
+    }
+
+    Process {
+        id: fallbackVnstatProc
+        command: ["vnstat", "--oneline"]
         running: false
 
         stdout: SplitParser {
@@ -134,6 +269,7 @@ Item {
         repeat: true
         triggeredOnStart: true
         onTriggered: {
+            root.refreshActiveIface()
             if (!vnstatProc.running)
                 vnstatProc.running = true
         }
