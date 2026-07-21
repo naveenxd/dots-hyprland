@@ -30,18 +30,22 @@ Singleton {
     Process {
         id: getKeybinds
         running: true
-        command: ["hyprctl", "binds", "-j"]
+        command: ["hyprctl", "binds"]
         
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
-                    root.keybinds = JSON.parse(text)
+                    root.keybinds = root.parseBinds(text)
                     var groups = []
                     for (var i = 0; i < root.keybinds.length; i++) {
                         var bind = root.keybinds[i].description
-                        var group = bind.substring(0, bind.indexOf(":"))
-                        if (!groups.includes(group) && group.length > 0) {
-                            groups.push(group)
+                        if (!bind || typeof bind !== "string") continue
+                        var colonIdx = bind.indexOf(":")
+                        if (colonIdx > 0) {
+                            var group = bind.substring(0, colonIdx).trim()
+                            if (!groups.includes(group) && group.length > 0) {
+                                groups.push(group)
+                            }
                         }
                     }
                     root.keybindCategories = groups
@@ -50,6 +54,47 @@ Singleton {
                 }
             }
         }
+    }
+
+    function parseBinds(text) {
+        if (!text) return []
+
+        var trimmed = text.trim()
+        if (trimmed.startsWith("[")) {
+            try {
+                var parsed = JSON.parse(trimmed)
+                if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].modmask === "number") {
+                    return parsed
+                }
+            } catch (e) {
+                // Fall through to plain text parsing if JSON is malformed
+            }
+        }
+
+        var binds = []
+        var lines = text.split("\n")
+        var curr = null
+
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i]
+            if (!line.startsWith("\t") && line.trim().length > 0) {
+                if (curr) binds.push(curr)
+                curr = { bindtype: line.trim(), modmask: 0, description: "", key: "" }
+            } else if (line.startsWith("\t") && curr) {
+                var idx = line.indexOf(":")
+                if (idx !== -1) {
+                    var k = line.substring(0, idx).trim()
+                    var v = line.substring(idx + 1).trim()
+                    if (k === "modmask") {
+                        curr.modmask = parseInt(v) || 0
+                    } else {
+                        curr[k] = v
+                    }
+                }
+            }
+        }
+        if (curr) binds.push(curr)
+        return binds
     }
 }
 
