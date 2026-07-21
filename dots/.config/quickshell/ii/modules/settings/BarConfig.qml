@@ -167,7 +167,7 @@ ContentPage {
             }
         }
 
-        // COMPACT (qs_configs) BAR LAYOUT NOTICE
+        // COMPACT (qs_configs) BAR LAYOUT NOTICE & TOGGLES
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 12
@@ -179,6 +179,15 @@ ContentPage {
                 color: Appearance.colors.colOnLayer1
                 font.pixelSize: Appearance.font.pixelSize.normal
                 wrapMode: Text.WordWrap
+            }
+
+            ConfigSwitch {
+                buttonIcon: "battery_std"
+                text: Translation.tr("Show battery icon")
+                checked: Config.options.bar.indicators.showBattery
+                onCheckedChanged: {
+                    Config.options.bar.indicators.showBattery = checked;
+                }
             }
         }
     }
