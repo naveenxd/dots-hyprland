@@ -12,21 +12,18 @@ import Quickshell.Io
 Singleton {
     property var clock: SystemClock {
         id: clock
-        precision: {
-            if (Config.options?.time?.secondPrecision || Config.options?.bar?.showSeconds || GlobalStates.screenLocked)
-                return SystemClock.Seconds;
-            return SystemClock.Minutes;
-        }
+        precision: (Config.options?.time?.secondPrecision || Config.options?.bar?.showSeconds)
+            ? SystemClock.Seconds
+            : SystemClock.Minutes
     }
     property string time: {
-        const fmt = Config.options?.time?.format ?? "hh:mm";
-        if (Config.options?.time?.secondPrecision) {
-            // Insert :ss before trailing am/pm suffix (e.g. " ap", " AP") or append it
+        let fmt = Config.options?.time?.format ?? "hh:mm";
+        if (Config.options?.time?.secondPrecision || Config.options?.bar?.showSeconds) {
             const withSeconds = fmt.replace(/( [aA][pP]?)$/, ":ss$1");
-            // If no suffix was replaced, append :ss
             const finalFmt = withSeconds === fmt ? fmt + ":ss" : withSeconds;
             return Qt.locale().toString(clock.date, finalFmt);
         }
+        fmt = fmt.replace(/:ss/g, "").replace(/ss/g, "");
         return Qt.locale().toString(clock.date, fmt);
     }
     property string shortDate: Qt.locale().toString(clock.date, Config.options?.time?.shortDateFormat ?? "dd/MM")

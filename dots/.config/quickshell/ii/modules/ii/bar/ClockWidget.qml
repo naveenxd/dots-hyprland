@@ -11,11 +11,11 @@ Item {
     property bool showDate: Config.options.bar.verbose
     property string timeFormat: {
         let format = Config.options?.time?.format ?? "hh:mm";
-        if (Config.options?.bar?.showSeconds) {
+        format = format.replace(/:ss/g, "").replace(/ss/g, "");
+        if (Config.options?.bar?.showSeconds || Config.options?.time?.secondPrecision) {
             if (format.includes("ap") || format.includes("AP"))
                 return format.replace(/(?=\s*[aA][pP]$)/, ":ss");
-            if (!format.includes("ss"))
-                return `${format}:ss`;
+            return `${format}:ss`;
         }
         return format;
     }
@@ -24,7 +24,7 @@ Item {
 
     SystemClock {
         id: barClock
-        precision: Config.options?.bar?.showSeconds ? SystemClock.Seconds : SystemClock.Minutes
+        precision: (Config.options?.bar?.showSeconds || Config.options?.time?.secondPrecision) ? SystemClock.Seconds : SystemClock.Minutes
     }
 
     RowLayout {
