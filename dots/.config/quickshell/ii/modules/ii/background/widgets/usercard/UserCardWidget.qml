@@ -219,7 +219,7 @@ AbstractBackgroundWidget {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: GlobalStates.settingsOpen = true
+                            onClicked: Quickshell.execDetached(["qs", "-p", Directories.config + "/quickshell/ii/settings.qml"])
                         }
                     }
 

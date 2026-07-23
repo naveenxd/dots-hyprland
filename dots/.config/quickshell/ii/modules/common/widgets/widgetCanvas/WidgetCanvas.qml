@@ -8,6 +8,9 @@ MouseArea {
     readonly property bool isWidgetCanvas: true
     readonly property bool gridVisible: showGrid && Config.options.background.showGrid
 
+    propagateComposedEvents: true
+    onPressed: (mouse) => mouse.accepted = false
+
     property bool centerXActive: false
     property bool centerYActive: false
 

@@ -122,9 +122,11 @@ Scope {
         // Layer props
         screen: modelData
         exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.layer: (GlobalStates.screenLocked && !scaleAnim.running) ? WlrLayer.Overlay : WlrLayer.Bottom
-        // WlrLayershell.layer: WlrLayer.Bottom
+        WlrLayershell.layer: (GlobalStates.screenLocked && !(scaleAnim?.running ?? false)) ? WlrLayer.Overlay : WlrLayer.Bottom
         WlrLayershell.namespace: "quickshell:background"
+        WlrLayershell.keyboardFocus: GlobalStates.desktopWidgetKeyboardFocus
+            ? WlrKeyboardFocus.OnDemand
+            : WlrKeyboardFocus.None
         anchors {
             top: true
             bottom: true
@@ -438,6 +440,7 @@ Scope {
                 anchors.fill: parent
                 z: -2
                 acceptedButtons: Qt.RightButton
+                propagateComposedEvents: true
                 onClicked: (mouse) => {
                     GlobalStates.desktopMenuScreen = bgRoot.screen
                     GlobalStates.desktopMenuX = mouse.x

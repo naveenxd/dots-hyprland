@@ -31,6 +31,10 @@ Singleton {
         root.randomQuote = root.quotesList[Math.floor(Math.random() * root.quotesList.length)];
     }
 
+    property bool settingsOpen: false
+    property string settingsPage: ""
+    property Item currentPageInstance: null
+    property bool desktopWidgetKeyboardFocus: false
     property bool crosshairOpen: false
     property bool desktopMenuOpen: false
     property var desktopMenuScreen: null
