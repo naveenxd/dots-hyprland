@@ -22,6 +22,8 @@ import qs.modules.ii.background.widgets.media
 import qs.modules.ii.background.widgets.resources
 import qs.modules.ii.background.widgets.usercard
 import qs.modules.ii.background.widgets.calendar
+import qs.modules.ii.background.widgets.images
+import qs.modules.ii.background.widgets.worldclock
 
 Scope {
     id: root
@@ -363,6 +365,39 @@ Scope {
                 FadeLoader {
                     shown: Config.options.background.widgets.calendar?.enable ?? false
                     sourceComponent: CalendarWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width
+                        scaledScreenHeight: bgRoot.screen.height
+                        wallpaperScale: 1
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.customImage?.enable ?? false
+                    sourceComponent: CustomImage {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width
+                        scaledScreenHeight: bgRoot.screen.height
+                        wallpaperScale: 1
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.images?.enable ?? false
+                    sourceComponent: ImageConverterWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width
+                        scaledScreenHeight: bgRoot.screen.height
+                        wallpaperScale: 1
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.worldClock?.enable ?? false
+                    sourceComponent: WorldClockWidget {
                         screenWidth: bgRoot.screen.width
                         screenHeight: bgRoot.screen.height
                         scaledScreenWidth: bgRoot.screen.width

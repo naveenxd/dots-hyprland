@@ -161,8 +161,17 @@ Singleton {
                 property string volumeMixer: `~/.config/hypr/hyprland/scripts/launch_first_available.sh "pavucontrol-qt" "pavucontrol"`
             }
 
+            property JsonObject profile: JsonObject {
+                property string avatarPath: ""
+                property string avatarPicture: ""
+                property string descriptionText: "::distro::"
+                property string displayName: ""
+            }
+
             property JsonObject background: JsonObject {
                 property bool widgetsLocked: false
+                property bool showGrid: true
+                property bool showSnapLines: true
                 property JsonObject widgets: JsonObject {
                     property JsonObject clock: JsonObject {
                         property bool enable: true
@@ -235,6 +244,31 @@ Singleton {
                         property real x: 550
                         property real y: 100
                         property string sizeMode: "2x2"
+                    }
+                    property JsonObject customImage: JsonObject {
+                        property bool enable: false
+                        property string placementStrategy: "free"
+                        property real x: 550
+                        property real y: 450
+                        property string path: ""
+                        property real size: 200
+                        property string shape: "Cookie4Sided"
+                    }
+                    property JsonObject images: JsonObject {
+                        property bool enable: false
+                        property string placementStrategy: "free"
+                        property real x: 850
+                        property real y: 100
+                    }
+                    property JsonObject worldClock: JsonObject {
+                        property bool enable: false
+                        property string placementStrategy: "free"
+                        property real x: 850
+                        property real y: 400
+                        property string sizeMode: "2x2"
+                        property list<string> timezones: [
+                            "Australia/Sydney", "Asia/Tokyo", "Europe/London", "America/New_York"
+                        ]
                     }
                     property JsonObject visualizer: JsonObject {
                         property bool enable: false
