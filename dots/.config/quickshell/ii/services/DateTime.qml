@@ -12,7 +12,7 @@ import Quickshell.Io
 Singleton {
     property var clock: SystemClock {
         id: clock
-        precision: (Config.options?.time?.secondPrecision || Config.options?.bar?.showSeconds)
+        precision: Config.options?.time?.secondPrecision
             ? SystemClock.Seconds
             : SystemClock.Minutes
     }
@@ -35,7 +35,7 @@ Singleton {
 
     property string time: {
         const fmt = Config.options?.time?.format ?? "hh:mm";
-        const enableSec = Config.options?.time?.secondPrecision || Config.options?.bar?.showSeconds;
+        const enableSec = Config.options?.time?.secondPrecision;
         return Qt.locale().toString(clock.date, normalizeTimeFormat(fmt, enableSec));
     }
     property string shortDate: Qt.locale().toString(clock.date, Config.options?.time?.shortDateFormat ?? "dd/MM")

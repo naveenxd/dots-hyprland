@@ -11,14 +11,14 @@ Item {
     property bool showDate: Config.options.bar.verbose
     property string timeFormat: DateTime.normalizeTimeFormat(
         Config.options?.time?.format ?? "hh:mm",
-        Config.options?.bar?.showSeconds || Config.options?.time?.secondPrecision
+        Config.options?.bar?.showSeconds
     )
     implicitWidth: rowLayout.implicitWidth
     implicitHeight: Appearance.sizes.barHeight
 
     SystemClock {
         id: barClock
-        precision: (Config.options?.bar?.showSeconds || Config.options?.time?.secondPrecision) ? SystemClock.Seconds : SystemClock.Minutes
+        precision: Config.options?.bar?.showSeconds ? SystemClock.Seconds : SystemClock.Minutes
     }
 
     RowLayout {
