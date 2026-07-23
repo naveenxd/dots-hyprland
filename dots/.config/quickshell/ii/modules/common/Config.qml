@@ -162,6 +162,7 @@ Singleton {
             }
 
             property JsonObject background: JsonObject {
+                property bool widgetsLocked: false
                 property JsonObject widgets: JsonObject {
                     property JsonObject clock: JsonObject {
                         property bool enable: true
@@ -208,6 +209,32 @@ Singleton {
                         property string placementStrategy: "free" // "free", "leastBusy", "mostBusy"
                         property real x: 400
                         property real y: 100
+                    }
+                    property JsonObject media: JsonObject {
+                        property bool enable: false
+                        property string placementStrategy: "free"
+                        property real x: 100
+                        property real y: 300
+                    }
+                    property JsonObject resources: JsonObject {
+                        property bool enable: false
+                        property string placementStrategy: "free"
+                        property real x: 100
+                        property real y: 450
+                        property bool vertical: false
+                    }
+                    property JsonObject userCard: JsonObject {
+                        property bool enable: false
+                        property string placementStrategy: "free"
+                        property real x: 550
+                        property real y: 300
+                    }
+                    property JsonObject calendar: JsonObject {
+                        property bool enable: false
+                        property string placementStrategy: "free"
+                        property real x: 550
+                        property real y: 100
+                        property string sizeMode: "2x2"
                     }
                     property JsonObject visualizer: JsonObject {
                         property bool enable: false
