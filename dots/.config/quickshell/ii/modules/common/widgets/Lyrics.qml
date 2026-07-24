@@ -16,8 +16,8 @@ Item {
     property color indicatorShapeColor: Appearance.colors.colOnPrimaryContainer
     property int textAlignment: Text.AlignLeft
 
-    implicitWidth: 200
-    implicitHeight: 200
+    implicitWidth: (LyricsService.status === "ok" || LyricsService.status === "loading") ? 200 : 0
+    implicitHeight: (LyricsService.status === "ok" || LyricsService.status === "loading") ? 200 : 0
 
     ColumnLayout {
         anchors.fill: parent
@@ -26,7 +26,7 @@ Item {
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            visible: LyricsService.status !== "ok"
+            visible: LyricsService.status === "loading"
 
             ColumnLayout {
                 anchors.centerIn: parent

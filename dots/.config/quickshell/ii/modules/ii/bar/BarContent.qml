@@ -19,7 +19,7 @@ Item { // Bar content region
     Component { id: compClockWidget; ClockWidget { Layout.alignment: Qt.AlignVCenter; Layout.fillWidth: true; showDate: (Config.options.bar.verbose && root.useShortenedForm < 2) } }
     Component { id: compUtilButtons; UtilButtons { Layout.alignment: Qt.AlignVCenter; visible: (Config.options.bar.verbose && root.useShortenedForm === 0) } }
     Component { id: compBatteryIndicator; BatteryIndicator { Layout.alignment: Qt.AlignVCenter; visible: (root.useShortenedForm < 2 && Battery.available) } }
-    Component { id: compLyrics; Lyrics { Layout.alignment: Qt.AlignVCenter } }
+    Component { id: compLyrics; Lyrics { Layout.alignment: Qt.AlignVCenter; visible: (LyricsService.status === "ok" || LyricsService.status === "loading") } }
     Component { id: compNetSpeedIndicator; NetSpeedIndicator { Layout.alignment: Qt.AlignVCenter } }
     Component { id: compWeather; WeatherBar { visible: Config.options.bar.weather.enable; Layout.alignment: Qt.AlignVCenter } }
 
