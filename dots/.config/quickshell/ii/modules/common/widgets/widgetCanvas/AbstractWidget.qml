@@ -51,6 +51,8 @@ MouseArea {
         var nearX = Math.abs(widgetCenterX - canvas.width / 2) < threshold
         var nearY = Math.abs(widgetCenterY - canvas.height / 2) < threshold
         canvas.setCenterActive(nearX, nearY)
+        if (canvas.updateActiveEdgeLines)
+            canvas.updateActiveEdgeLines(dragProxy.x, dragProxy.x + root.width, dragProxy.y, dragProxy.y + root.height)
     }
 
     Item {
@@ -97,8 +99,7 @@ MouseArea {
             if (Math.abs(widgetCenterY - canvas.height / 2) < root.gridSize / 2)
                 horizontalLines.push(canvas.height / 2)
 
-            if (Config.options.background.showSnapLines)
-                canvas.flashLines(verticalLines, horizontalLines)
+            canvas.flashLines(verticalLines, horizontalLines)
         }
 
         dragProxy.x = root.x

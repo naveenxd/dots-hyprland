@@ -43,22 +43,6 @@ Item {
             onCheckedChanged: Config.options.background.widgetsLocked = checked
         }
 
-        ConfigSwitch {
-            Layout.fillWidth: true
-            buttonIcon: "grid_on"
-            text: Translation.tr("Show alignment grid")
-            checked: Config.options.background.showGrid ?? true
-            onCheckedChanged: Config.options.background.showGrid = checked
-        }
-
-        ConfigSwitch {
-            Layout.fillWidth: true
-            buttonIcon: "straighten"
-            text: Translation.tr("Snap lines when moving")
-            checked: Config.options.background.showSnapLines ?? true
-            onCheckedChanged: Config.options.background.showSnapLines = checked
-        }
-
         Rectangle {
             Layout.fillWidth: true
             Layout.topMargin: 4

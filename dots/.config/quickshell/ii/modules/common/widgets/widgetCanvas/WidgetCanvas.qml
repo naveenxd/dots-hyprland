@@ -6,25 +6,40 @@ MouseArea {
     property int gridSize: 24
     property bool showGrid: false
     readonly property bool isWidgetCanvas: true
-    readonly property bool gridVisible: showGrid && Config.options.background.showGrid
+    readonly property bool gridVisible: showGrid
 
     propagateComposedEvents: true
     onPressed: (mouse) => mouse.accepted = false
 
     property bool centerXActive: false
     property bool centerYActive: false
+    property real activeLeft: -1
+    property real activeRight: -1
+    property real activeTop: -1
+    property real activeBottom: -1
 
     function setDragging(active) {
         root.showGrid = active
         if (!active) {
             root.centerXActive = false
             root.centerYActive = false
+            root.activeLeft = -1
+            root.activeRight = -1
+            root.activeTop = -1
+            root.activeBottom = -1
         }
     }
 
     function setCenterActive(xActive, yActive) {
         root.centerXActive = xActive
         root.centerYActive = yActive
+    }
+
+    function updateActiveEdgeLines(left, right, top, bottom) {
+        root.activeLeft = left
+        root.activeRight = right
+        root.activeTop = top
+        root.activeBottom = bottom
     }
 
     Repeater {
@@ -87,6 +102,43 @@ MouseArea {
         Behavior on opacity {
             animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
         }
+    }
+
+    Rectangle {
+        visible: root.gridVisible && root.activeLeft >= 0
+        x: root.activeLeft
+        y: 0
+        width: 1
+        height: root.height
+        color: Appearance.colors.colPrimary
+        opacity: 0.6
+    }
+    Rectangle {
+        visible: root.gridVisible && root.activeRight >= 0
+        x: root.activeRight
+        y: 0
+        width: 1
+        height: root.height
+        color: Appearance.colors.colPrimary
+        opacity: 0.6
+    }
+    Rectangle {
+        visible: root.gridVisible && root.activeTop >= 0
+        x: 0
+        y: root.activeTop
+        width: root.width
+        height: 1
+        color: Appearance.colors.colPrimary
+        opacity: 0.6
+    }
+    Rectangle {
+        visible: root.gridVisible && root.activeBottom >= 0
+        x: 0
+        y: root.activeBottom
+        width: root.width
+        height: 1
+        color: Appearance.colors.colPrimary
+        opacity: 0.6
     }
 
     Component {
