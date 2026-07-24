@@ -209,8 +209,12 @@ AbstractBackgroundWidget {
                                     ? Appearance.colors.colPrimary
                                     : "transparent"
                                 colBackgroundHover: Appearance.colors.colPrimaryContainerHover
-                                colRipple: Appearance.colors.colPrimaryContainerActive
-                                downAction: () => { root.showLyrics = !root.showLyrics }
+                                downAction: () => {
+                                    root.showLyrics = !root.showLyrics
+                                    if (root.showLyrics && root.currentPlayer) {
+                                        LyricsService.fetchLyrics(root.currentPlayer.trackTitle, root.currentPlayer.trackArtist)
+                                    }
+                                }
 
                                 MaterialSymbol {
                                     anchors.centerIn: parent

@@ -20,6 +20,7 @@ Singleton {
     property string loadingStatus: ""
     property string currentLyricLine: ""
     property string nextLyricLine: ""
+    property int activeLineIndex: -1
     property var lyricLines: [] // Array of { time: seconds, text: string }
     property var lyricGroupIndex: [] // Precomputed group for each line index
     property int lastGroupWidth: 0
@@ -442,6 +443,7 @@ Singleton {
                 }
             }
 
+            root.activeLineIndex = currIdx;
             let newCurrentLine = "";
             let newNextLine = "";
 

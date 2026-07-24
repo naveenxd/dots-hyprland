@@ -139,6 +139,61 @@ MouseArea {
     //     }
     // }
 
+    // Lockscreen Top Lyrics — bare text, no container, art-adaptive colors
+    ColumnLayout {
+        id: topLyricsContainer
+        anchors {
+            top: parent.top
+            topMargin: 40
+            horizontalCenter: parent.horizontalCenter
+        }
+        width: Math.min(parent.width * 0.6, 700)
+        spacing: 6
+        visible: MprisController.activePlayer !== null
+                 && LyricsService.isSupportedPlayer(MprisController.activePlayer)
+                 && (LyricsService.lyricLines.length > 0 || LyricsService.loading)
+        opacity: root.toolbarOpacity
+
+        // Active lyric
+        StyledText {
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignHCenter
+            font.pixelSize: Appearance.font.pixelSize.huge
+            font.weight: Font.Bold
+            color: lockscreenMediaController.item?.lyricPrimaryColor ?? Appearance.colors.colPrimary
+            opacity: 0.95
+            elide: Text.ElideRight
+            maximumLineCount: 2
+            wrapMode: Text.WordWrap
+            textFormat: Text.PlainText
+            visible: text !== ""
+            text: {
+                if (LyricsService.loading) return Translation.tr("Fetching lyrics…")
+                if (LyricsService.lyricLines.length > 0) return LyricsService.currentLyricLine || LyricsService.nextLyricLine || ""
+                return ""
+            }
+        }
+
+        // Upcoming lyric (dimmed)
+        StyledText {
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignHCenter
+            font.pixelSize: Appearance.font.pixelSize.normal
+            font.italic: true
+            color: lockscreenMediaController.item?.lyricSubtextColor ?? Appearance.colors.colSubtext
+            opacity: 0.45
+            elide: Text.ElideRight
+            maximumLineCount: 1
+            wrapMode: Text.WordWrap
+            textFormat: Text.PlainText
+            visible: text !== "" && text !== (LyricsService.currentLyricLine || LyricsService.nextLyricLine)
+            text: {
+                if (LyricsService.lyricLines.length > 0 && LyricsService.currentLyricLine !== "") return LyricsService.nextLyricLine || ""
+                return ""
+            }
+        }
+    }
+
     Loader {
         id: lockscreenMediaController
 
