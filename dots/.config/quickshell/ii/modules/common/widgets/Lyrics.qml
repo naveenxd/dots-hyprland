@@ -56,8 +56,8 @@ Item {
                     Layout.fillWidth: true
                     horizontalAlignment: root.textAlignment
                     wrapMode: Text.WordWrap
-                    text: LyricsService.slots[index] ?? ""
-                    readonly property int dist: Math.abs(index - LyricsService.before)
+                    text: (LyricsService.slots && index < LyricsService.slots.length) ? (LyricsService.slots[index] ?? "") : ""
+                    readonly property int dist: Math.abs(index - (LyricsService.before ?? 0))
                     font.pixelSize: {
                         if (dist === 0) return Appearance.font.pixelSize.normal
                         if (dist === 1) return Appearance.font.pixelSize.small
