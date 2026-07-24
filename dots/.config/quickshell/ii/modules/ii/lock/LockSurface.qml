@@ -156,6 +156,7 @@ MouseArea {
 
         // Active lyric
         StyledText {
+            id: activeLyricLabel
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: Appearance.font.pixelSize.huge
@@ -172,10 +173,14 @@ MouseArea {
                 if (LyricsService.lyricLines.length > 0) return LyricsService.currentLyricLine || LyricsService.nextLyricLine || ""
                 return ""
             }
+
+            Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+            Behavior on color { ColorAnimation { duration: 300 } }
         }
 
         // Upcoming lyric (dimmed)
         StyledText {
+            id: upcomingLyricLabel
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: Appearance.font.pixelSize.normal
@@ -191,6 +196,9 @@ MouseArea {
                 if (LyricsService.lyricLines.length > 0 && LyricsService.currentLyricLine !== "") return LyricsService.nextLyricLine || ""
                 return ""
             }
+
+            Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+            Behavior on color { ColorAnimation { duration: 300 } }
         }
     }
 

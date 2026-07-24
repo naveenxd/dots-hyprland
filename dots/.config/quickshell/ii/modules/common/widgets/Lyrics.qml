@@ -91,8 +91,9 @@ Item {
                     return 0.3
                 }
 
-                Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
-                Behavior on font.pixelSize { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+                Behavior on font.pixelSize { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+                Behavior on color { ColorAnimation { duration: 280 } }
             }
         }
     }
