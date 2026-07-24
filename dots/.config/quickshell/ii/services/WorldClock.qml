@@ -70,10 +70,12 @@ Singleton {
     ]
 
     function setTimezone(index, tz) {
+        if (!root.timezoneList.includes(tz)) return
         let updated = root.timezones.slice()
         updated[index] = tz
         root.timezones = updated
-        Config.options.background.widgets.worldClock.timezones = updated
+        if (Config.options?.background?.widgets?.worldClock)
+            Config.options.background.widgets.worldClock.timezones = updated
     }
 
     onTimezonesChanged: root.refreshOffsets()
@@ -111,7 +113,7 @@ Singleton {
 
     Process {
         id: offsetProc
-        command: ["bash", "-c", root.timezones.map(tz => `TZ='${tz}' date +%z`).join("; ")]
+        command: ["bash", "-c", root.timezones.filter(tz => root.timezoneList.includes(tz)).map(tz => `TZ='${tz}' date +%z`).join("; ")]
         stdout: StdioCollector {
             id: offsetCollector
             onStreamFinished: {

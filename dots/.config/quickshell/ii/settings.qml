@@ -220,7 +220,7 @@ ApplicationWindow {
                                     Layout.fillWidth: true
                                 }
                                 StyledText {
-                                    text: "Arch Linux"
+                                    text: SystemInfo.distroName || "Linux"
                                     font.pixelSize: Appearance.font.pixelSize.small
                                     color: Appearance.colors.colSubtext
                                     elide: Text.ElideRight
