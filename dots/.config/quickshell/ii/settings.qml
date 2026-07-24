@@ -176,6 +176,61 @@ ApplicationWindow {
                         focus: root.visible
                     }
 
+                    // Profile Card (Material 3 style)
+                    Item {
+                        id: profileHeader
+                        implicitWidth: navRail.expanded ? 150 : 56
+                        implicitHeight: navRail.expanded ? 52 : 44
+                        Layout.topMargin: 5
+                        Layout.bottomMargin: 5
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: navRail.expanded ? 8 : 4
+                            anchors.rightMargin: navRail.expanded ? 8 : 4
+                            spacing: 12
+
+                            Rectangle {
+                                Layout.preferredWidth: 38
+                                Layout.preferredHeight: 38
+                                radius: 19
+                                color: Appearance.colors.colPrimaryContainer
+                                clip: true
+
+                                MaterialSymbol {
+                                    anchors.centerIn: parent
+                                    text: "account_circle"
+                                    iconSize: 24
+                                    color: Appearance.colors.colOnPrimaryContainer
+                                }
+                            }
+
+                            ColumnLayout {
+                                visible: navRail.expanded
+                                spacing: 0
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignVCenter
+
+                                StyledText {
+                                    text: Quickshell.env("USER") || "User"
+                                    font.bold: true
+                                    font.pixelSize: Appearance.font.pixelSize.normal
+                                    color: Appearance.colors.colOnLayer0
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+                                StyledText {
+                                    text: SystemInfo.distroName || "Linux"
+                                    font.pixelSize: Appearance.font.pixelSize.small
+                                    color: Appearance.colors.colSubtext
+                                    elide: Text.ElideRight
+                                    opacity: 0.7
+                                    Layout.fillWidth: true
+                                }
+                            }
+                        }
+                    }
+
                     FloatingActionButton {
                         id: fab
                         property bool justCopied: false

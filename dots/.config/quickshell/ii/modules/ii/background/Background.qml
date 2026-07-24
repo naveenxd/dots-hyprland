@@ -18,6 +18,12 @@ import qs.modules.ii.background.widgets
 import qs.modules.ii.background.widgets.clock
 import qs.modules.ii.background.widgets.weather
 import qs.modules.ii.background.widgets.visualizer
+import qs.modules.ii.background.widgets.media
+import qs.modules.ii.background.widgets.resources
+import qs.modules.ii.background.widgets.usercard
+import qs.modules.ii.background.widgets.calendar
+import qs.modules.ii.background.widgets.images
+import qs.modules.ii.background.widgets.worldclock
 
 Scope {
     id: root
@@ -116,9 +122,11 @@ Scope {
         // Layer props
         screen: modelData
         exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.layer: (GlobalStates.screenLocked && !scaleAnim.running) ? WlrLayer.Overlay : WlrLayer.Bottom
-        // WlrLayershell.layer: WlrLayer.Bottom
+        WlrLayershell.layer: (GlobalStates.screenLocked && !(scaleAnim?.running ?? false)) ? WlrLayer.Overlay : WlrLayer.Bottom
         WlrLayershell.namespace: "quickshell:background"
+        WlrLayershell.keyboardFocus: GlobalStates.desktopWidgetKeyboardFocus
+            ? WlrKeyboardFocus.OnDemand
+            : WlrKeyboardFocus.None
         anchors {
             top: true
             bottom: true
@@ -322,6 +330,83 @@ Scope {
                         wallpaperSafetyTriggered: bgRoot.wallpaperSafetyTriggered
                     }
                 }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.media?.enable ?? false
+                    sourceComponent: MediaWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width
+                        scaledScreenHeight: bgRoot.screen.height
+                        wallpaperScale: 1
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.resources?.enable ?? false
+                    sourceComponent: ResourcesWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width
+                        scaledScreenHeight: bgRoot.screen.height
+                        wallpaperScale: 1
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.userCard?.enable ?? false
+                    sourceComponent: UserCardWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width
+                        scaledScreenHeight: bgRoot.screen.height
+                        wallpaperScale: 1
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.calendar?.enable ?? false
+                    sourceComponent: CalendarWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width
+                        scaledScreenHeight: bgRoot.screen.height
+                        wallpaperScale: 1
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.customImage?.enable ?? false
+                    sourceComponent: CustomImage {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width
+                        scaledScreenHeight: bgRoot.screen.height
+                        wallpaperScale: 1
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.images?.enable ?? false
+                    sourceComponent: ImageConverterWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width
+                        scaledScreenHeight: bgRoot.screen.height
+                        wallpaperScale: 1
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.worldClock?.enable ?? false
+                    sourceComponent: WorldClockWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width
+                        scaledScreenHeight: bgRoot.screen.height
+                        wallpaperScale: 1
+                    }
+                }
             }
 
             FadeLoader {
@@ -347,6 +432,20 @@ Scope {
 
                     scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
                     scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
+                }
+            }
+
+            MouseArea {
+                id: desktopRightClickArea
+                anchors.fill: parent
+                z: -2
+                acceptedButtons: Qt.RightButton
+                propagateComposedEvents: true
+                onClicked: (mouse) => {
+                    GlobalStates.desktopMenuScreen = bgRoot.screen
+                    GlobalStates.desktopMenuX = mouse.x
+                    GlobalStates.desktopMenuY = mouse.y
+                    GlobalStates.desktopMenuOpen = true
                 }
             }
         }
