@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
@@ -48,6 +49,70 @@ ContentPage {
             stepSize: 1
             onValueChanged: {
                 Config.options.background.parallax.workspaceZoom = value / 100;
+            }
+        }
+    }
+
+    ContentSection {
+        icon: "auto_awesome"
+        title: Translation.tr("Wallpaper Switching Animation")
+
+        ContentSubsection {
+            title: Translation.tr("Transition Effect")
+            Layout.fillWidth: true
+
+            ConfigSelectionArray {
+                currentValue: Config.options.background.wallpaperAnimation
+                onSelected: newValue => {
+                    Config.options.background.wallpaperAnimation = newValue;
+                }
+                options: [
+                    { displayName: Translation.tr("Disable"), icon: "block", value: "" },
+                    { displayName: Translation.tr("Random"), icon: "shuffle", value: "random" },
+                    { displayName: Translation.tr("Magic"), icon: "auto_awesome", value: "magic" },
+                    { displayName: Translation.tr("Stripes"), icon: "texture_minus", value: "stripes" },
+                    { displayName: Translation.tr("Pixelate"), icon: "grid_view", value: "pixelate" },
+                    { displayName: Translation.tr("Doom Melt"), icon: "local_fire_department", value: "Doom" },
+                    { displayName: Translation.tr("Page Peel"), icon: "auto_stories", value: "Peel" },
+                    { displayName: Translation.tr("Circle"), icon: "radio_button_unchecked", value: "circle" },
+                    { displayName: Translation.tr("Circle Pit"), icon: "lens", value: "circlePit" },
+                    { displayName: Translation.tr("Circle Select"), icon: "adjust", value: "circleSelect" },
+                    { displayName: Translation.tr("Crossfade"), icon: "blur_on", value: "transition" }
+                ]
+            }
+        }
+
+        ConfigSlider {
+            text: Translation.tr("Animation Duration")
+            textWidth: 160
+            value: Config.options.background.wallpaperAnimationDuration ?? 1200
+            usePercentTooltip: false
+            buttonIcon: "speed"
+            from: 400
+            to: 2400
+            stepSize: 200
+            snapMode: Slider.SnapAlways
+            stopIndicatorValues: [400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400]
+            onValueChanged: {
+                Config.options.background.wallpaperAnimationDuration = value;
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Easing Curve")
+            Layout.fillWidth: true
+
+            ConfigSelectionArray {
+                currentValue: Config.options.background.wallpaperAnimationEasing ?? "InOutCubic"
+                onSelected: newValue => {
+                    Config.options.background.wallpaperAnimationEasing = newValue;
+                }
+                options: [
+                    { displayName: Translation.tr("InOut Cubic"), icon: "animation", value: "InOutCubic" },
+                    { displayName: Translation.tr("Out Cubic"), icon: "trending_up", value: "OutCubic" },
+                    { displayName: Translation.tr("InOut Quad"), icon: "show_chart", value: "InOutQuad" },
+                    { displayName: Translation.tr("Linear"), icon: "line_axis", value: "Linear" }
+                ]
             }
         }
     }

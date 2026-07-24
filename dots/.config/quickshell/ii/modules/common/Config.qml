@@ -162,6 +162,9 @@ Singleton {
             }
 
             property JsonObject background: JsonObject {
+                property string wallpaperAnimation: "random"
+                property int wallpaperAnimationDuration: 1200
+                property string wallpaperAnimationEasing: "InOutCubic"
                 property bool widgetsLocked: false
                 property JsonObject widgets: JsonObject {
                     property JsonObject clock: JsonObject {

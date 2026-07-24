@@ -84,6 +84,13 @@ Scope {
         property int workspaceChunkSize: Config?.options.bar.workspaces.shown ?? 10
         property int totalWorkspaces: Math.ceil(lastWorkspaceId / workspaceChunkSize) * workspaceChunkSize
         // Wallpaper
+        property var shaderList: ["circlePit", "circleSelect", "magic", "Doom", "Peel", "transition", "pixelate", "stripes"]
+        property string currentShader: "pixelate"
+        property string wallpaperAnimation: Config.options.background.wallpaperAnimation ?? "random"
+        property string currentWallpaperSource: Config.options.background.wallpaperPath
+        property string previousWallpaperSource: ""
+        property real transitionProgress: 1.0
+
         property bool wallpaperIsVideo: resolvedPath.endsWith(".mp4") || resolvedPath.endsWith(".webm") || resolvedPath.endsWith(".mkv") || resolvedPath.endsWith(".avi") || resolvedPath.endsWith(".mov")
         property var wallpaperData: WallpaperListener.effectivePerMonitor[monitor.name] || { path: Config.options.background.wallpaperPath, workspaceFirst: 1, workspaceLast: 10 }
         property string resolvedPath: wallpaperData.path || Config.options.background.wallpaperPath
@@ -95,6 +102,50 @@ Scope {
             const sensitiveWallpaper = (CF.StringUtils.stringListContainsSubstring(wallpaperPath.toLowerCase(), Config.options.workSafety.triggerCondition.fileKeywords));
             const sensitiveNetwork = (CF.StringUtils.stringListContainsSubstring(Network.networkName.toLowerCase(), Config.options.workSafety.triggerCondition.networkNameKeywords));
             return enabled && sensitiveWallpaper && sensitiveNetwork;
+        }
+
+        onWallpaperPathChanged: {
+            bgRoot.updateZoomScale();
+
+            if (bgRoot.wallpaperAnimation === "" || bgRoot.wallpaperSafetyTriggered) {
+                wallpaper.source = wallpaperPath
+                bgRoot.currentWallpaperSource = wallpaperPath
+                bgRoot.transitionProgress = 1.0
+                return
+            }
+
+            previousWallpaper.source = bgRoot.currentWallpaperSource
+            wallpaper.source = wallpaperPath
+            bgRoot.currentWallpaperSource = wallpaperPath
+
+            if (bgRoot.wallpaperAnimation === "random") {
+                bgRoot.currentShader = bgRoot.shaderList[Math.floor(Math.random() * bgRoot.shaderList.length)]
+            } else {
+                bgRoot.currentShader = bgRoot.wallpaperAnimation
+            }
+            bgRoot.transitionProgress = 0.0
+            transitionAnim.start()
+        }
+
+        NumberAnimation {
+            id: transitionAnim
+            target: bgRoot
+            property: "transitionProgress"
+            from: 0.0
+            to: 1.0
+            duration: Config.options.background.wallpaperAnimationDuration ?? 1200
+            easing.type: {
+                const e = Config.options.background.wallpaperAnimationEasing ?? "InOutCubic";
+                if (e === "OutCubic") return Easing.OutCubic;
+                if (e === "InOutQuad") return Easing.InOutQuad;
+                if (e === "Linear") return Easing.Linear;
+                return Easing.InOutCubic;
+            }
+            onFinished: {
+                previousWallpaper.source = ""
+                bgRoot.previousWallpaperSource = ""
+                bgRoot.transitionProgress = 1.0
+            }
         }
         readonly property real parallaxRation: Config.options.background.parallax.workspaceZoom
         property real minSuitableScale: 1 // Some reasonable init, to be updated
@@ -142,11 +193,6 @@ Scope {
             animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
         }
 
-        onWallpaperPathChanged: {
-            bgRoot.updateZoomScale();
-            // Clock position gets updated after zoom scale is updated
-        }
-
         // Wallpaper zoom scale
         function updateZoomScale() {
             getWallpaperSizeProc.path = bgRoot.wallpaperPath;
@@ -177,10 +223,22 @@ Scope {
         Item {
             anchors.fill: parent
 
+            Image {
+                id: previousWallpaper
+                anchors.fill: parent
+                fillMode: Image.PreserveAspectCrop
+                cache: true
+                smooth: true
+                asynchronous: true
+                layer.enabled: true
+                visible: false
+            }
+
             // Wallpaper
             StyledImage {
                 id: wallpaper
-                visible: opacity > 0 && !blurLoader.active
+                layer.enabled: true
+                visible: (bgRoot.wallpaperAnimation === "" || bgRoot.transitionProgress >= 1.0) && opacity > 0 && !blurLoader.active
                 opacity: (status === Image.Ready && !bgRoot.wallpaperIsVideo) ? 1 : 0
                 cache: false
                 smooth: false
@@ -249,6 +307,22 @@ Scope {
                 }
                 width: bgRoot.scaledWallpaperWidth
                 height: bgRoot.scaledWallpaperHeight
+            }
+
+            ShaderEffect {
+                id: transitionEffect
+                anchors.fill: parent
+                visible: !blurLoader.active && bgRoot.wallpaperAnimation !== "" && bgRoot.transitionProgress < 1.0
+                property var fromImage: previousWallpaper
+                property var toImage: wallpaper
+                property real progress: bgRoot.transitionProgress
+                property real aspectX: width / height
+                property real aspectY: 1.0
+                property vector2d aspectRatio: Qt.vector2d(aspectX, aspectY)
+                property vector2d origin: Qt.vector2d(0.5, 0.5)
+                fragmentShader: bgRoot.wallpaperAnimation !== ""
+                    ? Qt.resolvedUrl(`shaders/${bgRoot.currentShader}.frag.qsb`)
+                    : ""
             }
 
             Loader {
