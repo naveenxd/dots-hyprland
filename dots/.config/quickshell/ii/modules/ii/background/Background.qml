@@ -133,8 +133,14 @@ Scope {
             property: "transitionProgress"
             from: 0.0
             to: 1.0
-            duration: 1200
-            easing.type: Easing.InOutCubic
+            duration: Config.options.background.wallpaperAnimationDuration ?? 1200
+            easing.type: {
+                const e = Config.options.background.wallpaperAnimationEasing ?? "InOutCubic";
+                if (e === "OutCubic") return Easing.OutCubic;
+                if (e === "InOutQuad") return Easing.InOutQuad;
+                if (e === "Linear") return Easing.Linear;
+                return Easing.InOutCubic;
+            }
             onFinished: {
                 previousWallpaper.source = ""
                 bgRoot.previousWallpaperSource = ""
