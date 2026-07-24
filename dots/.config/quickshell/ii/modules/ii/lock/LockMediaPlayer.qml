@@ -38,6 +38,9 @@ Item {
         Appearance.colors.colPrimaryContainer, 0.75
     ) || Appearance.m3colors.m3secondaryContainer
     property QtObject blendedColors: AdaptedMaterialScheme { color: root.artDominantColor }
+    // Expose for parent (LockSurface lyrics overlay)
+    readonly property color lyricPrimaryColor: blendedColors.colPrimary
+    readonly property color lyricSubtextColor: blendedColors.colSubtext
 
     implicitWidth: 480
     implicitHeight: 560
@@ -452,24 +455,7 @@ Item {
                 }
             }
 
-            // Lyric preview
-            StyledText {
-                Layout.fillWidth: true
-                font.pixelSize: Appearance.font.pixelSize.small
-                font.italic: true
-                color: root.blendedColors.colPrimary
-                opacity: 0.85
-                elide: Text.ElideRight
-                maximumLineCount: 1
-                visible: text !== ""
-                text: {
-                    if (root.player !== LyricsService.activePlayer) return ""
-                    if (!LyricsService.isSupportedPlayer(root.player)) return ""
-                    if (LyricsService.lyricLines.length > 0) return LyricsService.nextLyricLine
-                    if (LyricsService.loading) return "Fetching lyrics…"
-                    return ""
-                }
-            }
+            Item { implicitHeight: 16 }
 
             Item { implicitHeight: 16 }
 

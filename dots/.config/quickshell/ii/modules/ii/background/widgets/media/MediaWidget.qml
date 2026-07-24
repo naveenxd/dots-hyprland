@@ -23,7 +23,7 @@ AbstractBackgroundWidget {
 
     readonly property var playerList: MprisController.players
     property MprisPlayer currentPlayer: {
-        const preferred = Config.options.bar.media.preferredPlayer.trim().toLowerCase()
+        const preferred = (Config.options?.bar?.media?.preferredPlayer ?? "").trim().toLowerCase()
         if (preferred.length === 0) return MprisController.activePlayer
         const _ = MprisController.players.count
         for (const p of MprisController.players) {
@@ -76,7 +76,7 @@ AbstractBackgroundWidget {
         id: coverArtDownloader
         property string targetFile: root.artUrl
         property string artFilePath: root.artFilePath
-        command: ["bash", "-c", `[ -f ${artFilePath} ] || curl -sSL '${targetFile}' -o '${artFilePath}'`]
+        command: ["bash", "-c", `[ -f '${artFilePath}' ] || curl -sSL '${targetFile}' -o '${artFilePath}'`]
         onExited: { root.downloaded = true }
     }
 
@@ -209,8 +209,12 @@ AbstractBackgroundWidget {
                                     ? Appearance.colors.colPrimary
                                     : "transparent"
                                 colBackgroundHover: Appearance.colors.colPrimaryContainerHover
-                                colRipple: Appearance.colors.colPrimaryContainerActive
-                                downAction: () => { root.showLyrics = !root.showLyrics }
+                                downAction: () => {
+                                    root.showLyrics = !root.showLyrics
+                                    if (root.showLyrics && root.currentPlayer) {
+                                        LyricsService.fetchLyrics(root.currentPlayer.trackTitle, root.currentPlayer.trackArtist)
+                                    }
+                                }
 
                                 MaterialSymbol {
                                     anchors.centerIn: parent
